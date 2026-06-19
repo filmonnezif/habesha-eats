@@ -13,7 +13,7 @@
   height: 80px;
   display: flex;
   align-items: center;
-  background: rgba(10, 10, 10, 0.7);
+  background: rgba(22, 25, 28, 0.75);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -140,7 +140,7 @@
   bottom: 0;
   width: 100%;
   max-width: 480px;
-  background: rgba(18, 18, 18, 0.95);
+  background: rgba(30, 34, 38, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-left: 1px solid rgba(255, 255, 255, 0.08);
@@ -388,7 +388,7 @@
 .discover-page {
   padding-top: 80px; /* offset for fixed navbar */
   min-height: 100vh;
-  background: #000000;
+  background: #16191c;
   position: relative;
   overflow: hidden;
 }
@@ -420,7 +420,7 @@
   position: sticky;
   top: 80px;
   z-index: 90;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(22, 25, 28, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -555,6 +555,29 @@
   gap: 2rem;
 }
 
+/* Premium Card shadows & transitions */
+.restaurant-card {
+  border-radius: 24px;
+  background: transparent;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.restaurant-card:hover {
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+}
+
+.restaurant-card:hover .restaurant-img {
+  transform: scale(1.05);
+}
+
+[data-theme="light"] .restaurant-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .restaurant-card:hover {
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.1);
+}
+
 /* Empty states */
 .empty-state {
   text-align: center;
@@ -609,7 +632,7 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 95;
-  background: rgba(18, 18, 18, 0.8);
+  background: rgba(30, 34, 38, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -734,4 +757,227 @@
     border-radius: 16px;
     padding: 0.75rem 1rem;
   }
+}
+
+/* ============================================================
+   LIGHT MODE — App Overrides
+   ============================================================ */
+
+[data-theme="light"] .app-navbar {
+  background: rgba(216, 218, 222, 0.9);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .app-search-input {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .app-search-input::placeholder {
+  color: rgba(15, 15, 15, 0.45);
+}
+
+[data-theme="light"] .app-search-input:focus {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .app-search-icon {
+  color: rgba(15, 15, 15, 0.45);
+}
+
+[data-theme="light"] .app-search-clear {
+  color: rgba(15, 15, 15, 0.55);
+}
+
+[data-theme="light"] .app-search-clear:hover {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .app-nav-icon-btn {
+  color: rgba(15, 15, 15, 0.75);
+}
+
+[data-theme="light"] .app-nav-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .cart-badge {
+  border-color: #d8dade;
+}
+
+[data-theme="light"] .cart-drawer {
+  background: rgba(216, 218, 222, 0.97);
+  border-left-color: rgba(0, 0, 0, 0.1);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .cart-drawer-header {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .cart-drawer-close {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .cart-drawer-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .cart-item {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .cart-item-name {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .cart-item-options {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .cart-item-remove {
+  color: rgba(15, 15, 15, 0.45);
+}
+
+[data-theme="light"] .cart-qty-control {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .cart-qty-btn {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .cart-qty-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .cart-item-price {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .cart-totals {
+  background: rgba(0, 0, 0, 0.02);
+  border-top-color: rgba(0, 0, 0, 0.06);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .cart-total-row {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .cart-total-final {
+  border-top-color: rgba(0, 0, 0, 0.1);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .cart-restaurant-badge {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .cart-add-more {
+  border-color: rgba(52, 199, 89, 0.25);
+}
+
+[data-theme="light"] .cart-add-more:hover {
+  background: rgba(52, 199, 89, 0.05);
+}
+
+/* Discover page */
+[data-theme="light"] .discover-page {
+  background: #d8dade;
+}
+
+[data-theme="light"] .discover-hero-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .discover-hero-subtitle {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .discover-controls {
+  background: rgba(216, 218, 222, 0.9);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .filter-pill {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(15, 15, 15, 0.75);
+}
+
+[data-theme="light"] .filter-pill:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .filter-pill-active {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .discover-sort-select {
+  background-color: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .category-pill {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .category-pill:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .skeleton-card {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .skeleton-card::after {
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.03), transparent);
+}
+
+[data-theme="light"] .sticky-order-bar {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .sticky-order-restaurant {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .map-toggle-btn {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .map-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .empty-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .empty-desc {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .cart-backdrop {
+  background: rgba(255, 255, 255, 0.5);
 }

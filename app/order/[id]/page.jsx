@@ -20,7 +20,7 @@ export default function OrderConfirmationPage({ params }) {
   }, []);
 
   return (
-    <div className="coming-soon-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#000', color: '#fff', padding: '2rem 1.5rem', textAlign: 'center' }}>
+    <div className="coming-soon-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#16191c', color: '#fff', padding: '2rem 1.5rem', textAlign: 'center' }}>
       
       {/* Decorative glows */}
       <div className="bg-glow bg-glow-green" style={{ top: '20%', left: '30%', opacity: 0.15 }} />
@@ -124,7 +124,7 @@ export default function OrderConfirmationPage({ params }) {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    background: isCompleted ? 'var(--color-habesha-green)' : '#1a1a1a',
+                    background: isCompleted ? 'var(--color-habesha-green)' : '#22272c',
                     border: `2px solid ${isActive ? 'var(--color-habesha-gold)' : isCompleted ? 'var(--color-habesha-green)' : 'rgba(255,255,255,0.15)'}`,
                     display: 'flex',
                     alignItems: 'center',

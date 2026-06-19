@@ -63,12 +63,12 @@ export default function RestaurantCard({ restaurant }) {
           )}
         </div>
 
-        <div className="restaurant-card-body" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.03)', borderBottomLeftRadius: '24px', borderBottomRightRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.06)', borderTop: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="restaurant-card-body" style={{ padding: '1.5rem', background: 'var(--color-surface-elevated)', borderBottomLeftRadius: '24px', borderBottomRightRadius: '24px', border: '1px solid var(--color-border-subtle)', borderTop: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div className="restaurant-card-header" style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 className="restaurant-card-name" style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
+            <h3 className="restaurant-card-name" style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0, color: 'var(--color-text-primary)' }}>
               {restaurant.name}
             </h3>
-            <div className="card-rating-badge" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(255, 255, 255, 0.06)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-habesha-gold)' }}>
+            <div className="card-rating-badge" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'var(--color-border-subtle)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-habesha-gold)' }}>
               <svg className="star-icon" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
                 <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
               </svg>
@@ -76,29 +76,29 @@ export default function RestaurantCard({ restaurant }) {
             </div>
           </div>
 
-          <p className="restaurant-card-tagline" style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.7)', margin: 0, fontStyle: 'italic' }}>
+          <p className="restaurant-card-tagline" style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', margin: 0, fontStyle: 'italic' }}>
             &ldquo;{restaurant.tagline}&rdquo;
           </p>
 
-          <p className="restaurant-card-description" style={{ fontSize: '0.8125rem', color: 'rgba(255, 255, 255, 0.5)', margin: 0, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <p className="restaurant-card-description" style={{ fontSize: '0.8125rem', color: 'var(--color-text-tertiary)', margin: 0, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {restaurant.description}
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.25rem' }}>
             {restaurant.cuisine.map((c) => (
-              <span key={c} style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.2rem 0.5rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', textTransform: 'uppercase', color: 'rgba(255, 255, 255, 0.6)' }}>
+              <span key={c} style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.2rem 0.5rem', background: 'var(--color-border-subtle)', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
                 {c}
               </span>
             ))}
             {restaurant.amenities.includes('mesob') && (
-              <span style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.2rem 0.5rem', background: 'rgba(252, 217, 0, 0.1)', border: '1px solid rgba(252, 217, 0, 0.2)', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--color-habesha-gold)' }}>
+              <span style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.2rem 0.5rem', background: 'var(--color-gold-badge-bg)', border: '1px solid var(--color-gold-badge-border)', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--color-habesha-gold)' }}>
                 Mesob Dining
               </span>
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border-subtle)' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
               Delivery: {restaurant.deliveryFee === 0 ? 'Free' : `AED ${restaurant.deliveryFee}`}
             </span>
             <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-habesha-green)' }}>

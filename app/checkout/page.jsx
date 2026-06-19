@@ -79,7 +79,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0 && !isPlacingOrder) {
     return (
-      <div className="coming-soon-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#000', color: '#fff', textAlign: 'center' }}>
+      <div className="coming-soon-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#16191c', color: '#fff', textAlign: 'center' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem' }}>Your Cart is Empty</h2>
         <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>You cannot checkout without items in your cart.</p>
         <Link href="/discover" className="shiny-btn-mini">Go to Discover</Link>
@@ -88,7 +88,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="discover-page" style={{ background: '#000', color: '#fff', minHeight: '100vh', paddingBottom: '6rem' }}>
+    <div className="discover-page" style={{ background: '#16191c', color: '#fff', minHeight: '100vh', paddingBottom: '6rem' }}>
       {/* Mini Simple Header */}
       <header className="app-navbar" style={{ height: '70px', justifyContent: 'space-between', padding: '0 2rem' }}>
         <Link href={`/restaurant/${restaurantId || 'discover'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', textDecoration: 'none', fontWeight: 600, fontSize: '0.9375rem' }}>
@@ -227,13 +227,13 @@ export default function CheckoutPage() {
                 <select
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
-                  style={{ flex: 1, padding: '0.75rem', background: '#121212', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#fff' }}
+                  style={{ flex: 1, padding: '0.75rem', background: '#22272c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#fff' }}
                 >
                   <option value="today">Today</option>
                   <option value="tomorrow">Tomorrow</option>
                 </select>
                 <select
-                  style={{ flex: 1, padding: '0.75rem', background: '#121212', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#fff' }}
+                  style={{ flex: 1, padding: '0.75rem', background: '#22272c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: '#fff' }}
                 >
                   <option>12:00 PM - 1:00 PM</option>
                   <option>1:00 PM - 2:00 PM</option>
@@ -309,7 +309,7 @@ export default function CheckoutPage() {
                     value={cardName}
                     onChange={(e) => setCardName(e.target.value)}
                     placeholder="E.g. Hanna Mamo"
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(22, 25, 28, 0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none' }}
                   />
                 </div>
 
@@ -322,7 +322,7 @@ export default function CheckoutPage() {
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim())}
                     placeholder="•••• •••• •••• ••••"
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none', letterSpacing: '0.1em' }}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(22, 25, 28, 0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none', letterSpacing: '0.1em' }}
                   />
                 </div>
 
@@ -336,7 +336,7 @@ export default function CheckoutPage() {
                       placeholder="MM/YY"
                       value={cardExpiry}
                       onChange={(e) => setCardExpiry(e.target.value)}
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none', textAlign: 'center' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(22, 25, 28, 0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none', textAlign: 'center' }}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -348,7 +348,7 @@ export default function CheckoutPage() {
                       placeholder="•••"
                       value={cardCVV}
                       onChange={(e) => setCardCVV(e.target.value.replace(/\D/g, ''))}
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none', textAlign: 'center' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', background: 'rgba(22, 25, 28, 0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', outline: 'none', textAlign: 'center' }}
                     />
                   </div>
                 </div>
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value)}
                 disabled={!!appliedPromo}
-                style={{ flex: 1, padding: '0.5rem 0.75rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', fontSize: '0.8125rem', outline: 'none' }}
+                style={{ flex: 1, padding: '0.5rem 0.75rem', background: 'rgba(22, 25, 28, 0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: '#fff', fontSize: '0.8125rem', outline: 'none' }}
               />
               <button
                 type="button"

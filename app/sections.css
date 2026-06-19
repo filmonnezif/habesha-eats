@@ -5,7 +5,7 @@
 .how-it-works-section {
   position: relative;
   z-index: 10;
-  background: #000000;
+  background: #16191c;
   padding: 6rem 2rem 3rem;
   /* Slide up over the hero — overlaps the hero by 100vh */
   margin-top: -100vh;
@@ -167,7 +167,7 @@
 .stats-section {
   position: relative;
   z-index: 10;
-  background: #030303;
+  background: #181b1e;
   padding: 6rem 2rem;
   overflow: hidden;
 }
@@ -280,7 +280,7 @@
 .dishes-section {
   position: relative;
   z-index: 10;
-  background: #050505;
+  background: #1a1d20;
   padding: 6rem 2rem;
   overflow: hidden;
 }
@@ -419,7 +419,7 @@
 .testimonials-section {
   position: relative;
   z-index: 10;
-  background: #030303;
+  background: #181b1e;
   padding: 6rem 0;
   overflow: hidden;
 }
@@ -557,7 +557,7 @@
 .final-cta-section {
   position: relative;
   z-index: 10;
-  background: #050505;
+  background: #1a1d20;
   padding: 8rem 2rem;
   overflow: hidden;
   text-align: center;
@@ -694,7 +694,7 @@
 .taste-of-home-section {
   position: relative;
   z-index: 10;
-  background: #050505;
+  background: #1a1d20;
   padding: 8rem 2rem;
   overflow: hidden;
 }
@@ -952,7 +952,7 @@
 .site-footer {
   position: relative;
   z-index: 10;
-  background: #0a0a0a;
+  background: #1e2226;
 }
 
 .footer-flag-border {
@@ -1285,7 +1285,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #050505;
+  background: #16191c;
   position: relative;
   overflow: hidden;
   padding: 4rem 2rem;
@@ -1421,21 +1421,47 @@
 
 .floating-bean {
   position: absolute;
-  will-change: opacity;
+  will-change: opacity, transform;
   transition: opacity 0.5s ease;
+  --bean-rotation: 0deg;
+  transform: rotate(var(--bean-rotation)) translateY(0);
+  animation: beanBounce 6s ease-in-out infinite;
 }
 
-/* Slow star-like twinkle — opacity pulses with a soft glow */
-.bean-shimmer {
+@keyframes beanBounce {
+  0%, 100% {
+    transform: rotate(var(--bean-rotation)) translateY(0);
+  }
+  50% {
+    transform: rotate(var(--bean-rotation)) translateY(-18px);
+  }
+}
+
+/* Slow star-like twinkle — applied to the image */
+.bean-shimmer img {
   animation: beanTwinkle 6s ease-in-out infinite;
 }
 
 @keyframes beanTwinkle {
   0%, 100% {
-    filter: brightness(0.6) drop-shadow(0 0 0px transparent);
+    filter: brightness(0.7) saturate(0.85);
   }
   50% {
-    filter: brightness(1.8) drop-shadow(0 0 8px rgba(200, 160, 100, 0.5));
+    filter: brightness(1.75) saturate(1.1);
+  }
+}
+
+/* Golden shiny flash on image */
+.bean-shiny img {
+  animation: goldGlow 1.5s ease-in-out forwards;
+}
+
+@keyframes goldGlow {
+  0%, 100% {
+    filter: brightness(0.95) saturate(0.9);
+  }
+  50% {
+    filter: brightness(2.1) sepia(0.5) saturate(8) hue-rotate(-10deg);
   }
 }
 
@@ -1449,3 +1475,368 @@
   z-index: 2;
 }
 
+/* ============================================================
+   LIGHT MODE — Section Overrides
+   ============================================================ */
+
+/* Smooth transitions */
+.stat-card,
+.dish-card,
+.testimonial-card,
+.restaurant-carousel-card,
+.teaser-card,
+.carousel-nav-btn,
+.carousel-dot,
+.back-to-top {
+  transition: all 0.4s var(--ease-out-expo), background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease;
+}
+
+/* How It Works */
+[data-theme="light"] .how-it-works-section {
+  background: #c0c2c6;
+}
+
+[data-theme="light"] .how-it-works-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .step-headline {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .step-description {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .step-number {
+  opacity: 0.15;
+}
+
+/* Stats Section */
+[data-theme="light"] .stats-section {
+  background: #b5b7bb;
+}
+
+[data-theme="light"] .stats-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .stat-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .stat-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .stat-label {
+  color: rgba(15, 15, 15, 0.6);
+}
+
+/* Popular Dishes */
+[data-theme="light"] .dishes-section {
+  background: #babbbf;
+}
+
+[data-theme="light"] .dishes-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .dish-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .dish-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .dish-name {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .dish-description {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .dish-tag {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .dishes-scroll-container {
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+[data-theme="light"] .dishes-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Testimonials */
+[data-theme="light"] .testimonials-section {
+  background: #b5b7bb;
+}
+
+[data-theme="light"] .testimonials-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .testimonial-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .testimonial-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .testimonial-quote {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .testimonial-name {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .testimonial-role {
+  color: rgba(15, 15, 15, 0.5);
+}
+
+/* Final CTA */
+[data-theme="light"] .final-cta-section {
+  background: #babbbf;
+}
+
+[data-theme="light"] .final-cta-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .final-cta-subtitle {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .partner-cta-text {
+  color: rgba(15, 15, 15, 0.5);
+}
+
+/* Taste of Home */
+[data-theme="light"] .taste-of-home-section {
+  background: #babbbf;
+}
+
+[data-theme="light"] .taste-of-home-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .taste-of-home-subtitle {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .restaurant-carousel-card {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .restaurant-carousel-card.card-active {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.1), 0 0 40px rgba(52, 199, 89, 0.03);
+}
+
+[data-theme="light"] .card-restaurant-name {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .card-description {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .card-footer-row {
+  color: rgba(15, 15, 15, 0.5);
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .card-specialty strong {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .card-emirate-badge {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f0f0f;
+}
+
+/* Carousel nav */
+[data-theme="light"] .carousel-nav-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: rgba(26, 26, 26, 0.55);
+}
+
+[data-theme="light"] .carousel-nav-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .carousel-dot {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Footer */
+[data-theme="light"] .site-footer {
+  background: #abafb3;
+}
+
+[data-theme="light"] .footer-tagline {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .footer-divider {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .footer-column-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .footer-link {
+  color: rgba(15, 15, 15, 0.5);
+}
+
+[data-theme="light"] .footer-link:hover {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .footer-copyright {
+  color: rgba(15, 15, 15, 0.5);
+}
+
+[data-theme="light"] .footer-legal-link {
+  color: rgba(15, 15, 15, 0.5);
+}
+
+[data-theme="light"] .footer-legal-link:hover {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .footer-legal-dot {
+  color: rgba(15, 15, 15, 0.5);
+}
+
+[data-theme="light"] .back-to-top {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(26, 26, 26, 0.55);
+}
+
+[data-theme="light"] .back-to-top:hover {
+  color: #0f0f0f;
+}
+
+/* Coming Soon Page */
+[data-theme="light"] .coming-soon-page {
+  background: #c0c2c6;
+}
+
+[data-theme="light"] .teaser-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .teaser-card:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .teaser-card h3 {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .teaser-card p {
+  color: rgba(15, 15, 15, 0.5);
+}
+
+[data-theme="light"] .coming-soon-desc {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+/* ============================================================
+   LIGHT MODE — Accent Color Overrides for Visibility
+   ============================================================ */
+
+/* Deeper green for visibility on gray */
+[data-theme="light"] .how-it-works-eyebrow,
+[data-theme="light"] .stats-eyebrow {
+  color: #0d7a30;
+}
+
+[data-theme="light"] .cta-primary {
+  background: #0d7a30;
+  box-shadow: 0 2px 12px rgba(13, 122, 48, 0.25);
+}
+
+[data-theme="light"] .cta-primary:hover {
+  background: #096325;
+  box-shadow: 0 8px 30px rgba(13, 122, 48, 0.35);
+}
+
+[data-theme="light"] .footer-cta {
+  background: #0d7a30;
+}
+
+[data-theme="light"] .footer-cta:hover {
+  background: #096325;
+  box-shadow: 0 8px 24px rgba(13, 122, 48, 0.3);
+}
+
+/* Deeper red for light mode */
+[data-theme="light"] .dishes-eyebrow {
+  color: #b91c24;
+}
+
+[data-theme="light"] .text-highlight-red {
+  color: #b91c24;
+}
+
+/* Deeper gold for visibility on gray */
+[data-theme="light"] .testimonials-eyebrow,
+[data-theme="light"] .taste-of-home-eyebrow {
+  color: #a67c00;
+}
+
+[data-theme="light"] .text-highlight-gold {
+  color: #a67c00;
+}
+
+[data-theme="light"] .text-highlight-green {
+  color: #0d7a30;
+}
+
+[data-theme="light"] .card-tagline {
+  color: #0d7a30;
+}
+
+[data-theme="light"] .partner-cta-link {
+  color: #0d7a30;
+}
+
+[data-theme="light"] .partner-cta-link:hover {
+  color: #a67c00;
+}
+
+[data-theme="light"] .cart-add-more {
+  color: #0d7a30;
+}
+
+[data-theme="light"] .card-rating-badge {
+  background: rgba(166, 124, 0, 0.12);
+  border-color: rgba(166, 124, 0, 0.25);
+  color: #a67c00;
+}

@@ -1,11 +1,13 @@
 #!/bin/bash
-# Extract frames from the Mesob basket video as optimized WebP sequence
-# Usage: ./scripts/extract-frames.sh <input-video> <output-dir> [fps] [width]
+# Extract frames from a video as optimized WebP sequence
+# Usage: ./scripts/extract-frames.sh <input-video> <output-dir> [fps] [width] [crop_filter]
+# Example: ./scripts/extract-frames.sh hero-light.mp4 public/frames-light 30 1920 "none"
 
 INPUT="${1:-../Mesob_basket_with_holographic_in…_202606121708.mp4}"
 OUTPUT_DIR="${2:-public/frames}"
 FPS="${3:-30}"
 WIDTH="${4:-1920}"
+CROP_FILTER="${5:-crop=1496:1080:212:0}" # Default crop for backward compatibility
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -13,9 +15,17 @@ echo "🎬 Extracting frames from: $INPUT"
 echo "📁 Output directory: $OUTPUT_DIR"
 echo "🎞️  FPS: $FPS, Width: ${WIDTH}px"
 
+FILTER_STR="fps=$FPS,scale=${WIDTH}:-1:flags=lanczos"
+if [ -n "$CROP_FILTER" ] && [ "$CROP_FILTER" != "none" ]; then
+  FILTER_STR="${CROP_FILTER},${FILTER_STR}"
+  echo "✂️  Applying crop filter: $CROP_FILTER"
+else
+  echo "🚫 No crop filter applied"
+fi
+
 # Extract frames as WebP for optimal compression
 ffmpeg -i "$INPUT" \
-  -vf "crop=1496:1080:212:0,fps=$FPS,scale=${WIDTH}:-1:flags=lanczos" \
+  -vf "$FILTER_STR" \
   -c:v libwebp \
   -quality 82 \
   -compression_level 4 \

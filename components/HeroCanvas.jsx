@@ -2,21 +2,71 @@
 
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { useFrameSequence } from '@/lib/useFrameSequence';
+import { useTheme } from '@/lib/ThemeContext';
 
-const TOTAL_FRAMES = 250;
+const DARK_TOTAL_FRAMES = 250;
+const LIGHT_TOTAL_FRAMES = 300;
 
 /**
  * HeroCanvas renders the frame sequence onto an HTML5 <canvas> element.
- * Handles responsive sizing and cover-fit rendering.
+ * Handles responsive sizing, cover-fit rendering, and crossfade between
+ * dark and light hero sequences on theme toggle.
  */
 export default function HeroCanvas({ currentFrameIndex = 0 }) {
   const canvasRef = useRef(null);
+  const lightCanvasRef = useRef(null);
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const animFrameRef = useRef(null);
-  const lastDrawnFrame = useRef(-1);
+  const lastDrawnFrame = useRef({ dark: -1, light: -1 });
 
-  const { getFrame, isReady, progress } = useFrameSequence(TOTAL_FRAMES);
+  const { isDark } = useTheme();
+  const [canvasOpacity, setCanvasOpacity] = useState({ dark: 1, light: 0 });
+  const transitionRef = useRef(null);
+
+  const { getFrame: getDarkFrame, isReady: darkReady, progress: darkProgress } = useFrameSequence(DARK_TOTAL_FRAMES, '/frames/frame-');
+  const { getFrame: getLightFrame, isReady: lightReady, progress: lightProgress } = useFrameSequence(LIGHT_TOTAL_FRAMES, '/frames-light/frame-');
+
+  const isReady = isDark ? darkReady : lightReady;
+  const progress = isDark ? darkProgress : lightProgress;
+
+  // Crossfade on theme change
+  useEffect(() => {
+    if (transitionRef.current) {
+      cancelAnimationFrame(transitionRef.current);
+    }
+
+    const targetDark = isDark ? 1 : 0;
+    const targetLight = isDark ? 0 : 1;
+    const duration = 800; // ms
+    const startTime = performance.now();
+    const startDark = canvasOpacity.dark;
+    const startLight = canvasOpacity.light;
+
+    const animate = (now) => {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      // Smooth easing
+      const ease = 1 - Math.pow(1 - t, 3);
+
+      setCanvasOpacity({
+        dark: startDark + (targetDark - startDark) * ease,
+        light: startLight + (targetLight - startLight) * ease,
+      });
+
+      if (t < 1) {
+        transitionRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    transitionRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (transitionRef.current) {
+        cancelAnimationFrame(transitionRef.current);
+      }
+    };
+  }, [isDark]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle responsive canvas sizing
   useEffect(() => {
@@ -37,9 +87,8 @@ export default function HeroCanvas({ currentFrameIndex = 0 }) {
     return () => observer.disconnect();
   }, []);
 
-  // Draw frame to canvas with cover-fit
-  const drawFrame = useCallback((frameIndex) => {
-    const canvas = canvasRef.current;
+  // Draw frame to a specific canvas with cover-fit
+  const drawFrameToCanvas = useCallback((canvas, getFrame, frameIndex, cacheKey) => {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -49,7 +98,7 @@ export default function HeroCanvas({ currentFrameIndex = 0 }) {
     if (!frame) return;
 
     // Skip if same frame already drawn
-    if (lastDrawnFrame.current === frameIndex && frame === getFrame(lastDrawnFrame.current)) return;
+    if (lastDrawnFrame.current[cacheKey] === frameIndex) return;
 
     const { width: cw, height: ch } = canvas;
 
@@ -61,11 +110,9 @@ export default function HeroCanvas({ currentFrameIndex = 0 }) {
     const zoomFactor = 1.0;
 
     if (canvasAspect > imgAspect) {
-      // Canvas is wider than image
       drawWidth = cw * zoomFactor;
       drawHeight = (cw / imgAspect) * zoomFactor;
     } else {
-      // Canvas is taller than image
       drawHeight = ch * zoomFactor;
       drawWidth = (ch * imgAspect) * zoomFactor;
     }
@@ -75,8 +122,19 @@ export default function HeroCanvas({ currentFrameIndex = 0 }) {
 
     ctx.clearRect(0, 0, cw, ch);
     ctx.drawImage(frame, offsetX, offsetY, drawWidth, drawHeight);
-    lastDrawnFrame.current = frameIndex;
-  }, [getFrame]);
+    lastDrawnFrame.current[cacheKey] = frameIndex;
+  }, []);
+
+  // Map the shared frame index to each sequence's range
+  const getDarkFrameIndex = useCallback((idx) => {
+    return Math.min(idx, DARK_TOTAL_FRAMES - 1);
+  }, []);
+
+  const getLightFrameIndex = useCallback((idx) => {
+    // Scale proportionally if frame counts differ
+    const ratio = LIGHT_TOTAL_FRAMES / DARK_TOTAL_FRAMES;
+    return Math.min(Math.round(idx * ratio), LIGHT_TOTAL_FRAMES - 1);
+  }, []);
 
   // Render on frame index change
   useEffect(() => {
@@ -85,7 +143,9 @@ export default function HeroCanvas({ currentFrameIndex = 0 }) {
     }
 
     animFrameRef.current = requestAnimationFrame(() => {
-      drawFrame(currentFrameIndex);
+      // Always draw both canvases so crossfade works smoothly
+      drawFrameToCanvas(canvasRef.current, getDarkFrame, getDarkFrameIndex(currentFrameIndex), 'dark');
+      drawFrameToCanvas(lightCanvasRef.current, getLightFrame, getLightFrameIndex(currentFrameIndex), 'light');
     });
 
     return () => {
@@ -93,7 +153,9 @@ export default function HeroCanvas({ currentFrameIndex = 0 }) {
         cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [currentFrameIndex, drawFrame, isReady]);
+  }, [currentFrameIndex, drawFrameToCanvas, getDarkFrame, getLightFrame, getDarkFrameIndex, getLightFrameIndex, darkReady, lightReady]);
+
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
 
   return (
     <div
@@ -115,16 +177,38 @@ export default function HeroCanvas({ currentFrameIndex = 0 }) {
         </div>
       )}
 
+      {/* Dark canvas */}
       <canvas
         ref={canvasRef}
-        width={dimensions.width * (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1)}
-        height={dimensions.height * (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1)}
+        width={dimensions.width * dpr}
+        height={dimensions.height * dpr}
         style={{
           width: dimensions.width,
           height: dimensions.height,
+          opacity: canvasOpacity.dark,
+          position: 'absolute',
+          inset: 0,
+          transition: 'opacity 0.1s linear',
         }}
         className="hero-canvas"
       />
+
+      {/* Light canvas */}
+      <canvas
+        ref={lightCanvasRef}
+        width={dimensions.width * dpr}
+        height={dimensions.height * dpr}
+        style={{
+          width: dimensions.width,
+          height: dimensions.height,
+          opacity: canvasOpacity.light,
+          position: 'absolute',
+          inset: 0,
+          transition: 'opacity 0.1s linear',
+        }}
+        className="hero-canvas"
+      />
+
       <div className="hero-canvas-overlay" />
     </div>
   );

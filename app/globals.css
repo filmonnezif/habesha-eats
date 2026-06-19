@@ -19,9 +19,9 @@
   --color-habesha-warm: #c87a53;
   --color-habesha-warm-dark: #a85f38;
 
-  --color-surface: #0a0a0a;
-  --color-surface-elevated: #121212;
-  --color-surface-overlay: rgba(10, 10, 10, 0.75);
+  --color-surface: #1e2226;
+  --color-surface-elevated: #24292e;
+  --color-surface-overlay: rgba(22, 25, 28, 0.75);
 
   --color-text-primary: #ffffff;
   --color-text-secondary: rgba(255, 255, 255, 0.65);
@@ -29,6 +29,9 @@
 
   --color-border: rgba(255, 255, 255, 0.1);
   --color-border-subtle: rgba(255, 255, 255, 0.06);
+
+  --color-gold-badge-bg: rgba(252, 217, 0, 0.1);
+  --color-gold-badge-border: rgba(252, 217, 0, 0.2);
 
   --font-display: 'Syne', sans-serif;
   --font-body: 'Space Grotesk', sans-serif;
@@ -59,24 +62,9 @@ html {
 body {
   font-family: var(--font-body);
   color: var(--color-text-primary);
-  background: #000000;
+  background: #16191c;
   line-height: 1.5;
   overflow-x: hidden;
-  cursor: none;
-}
-
-/* Hide default cursor on interactive elements (custom cursor active) */
-a, button, input, textarea, select,
-.shiny-btn, .shiny-btn-mini, .navbar-cta {
-  cursor: none;
-}
-
-/* Re-enable default cursor on touch devices */
-@media (hover: none) and (pointer: coarse) {
-  body, a, button, input, textarea, select,
-  .shiny-btn, .shiny-btn-mini, .navbar-cta {
-    cursor: auto;
-  }
 }
 
 /* ============================================================
@@ -408,7 +396,7 @@ body::before {
   align-items: center;
   justify-content: center;
   z-index: 5;
-  background: #000000;
+  background: #16191c;
 }
 
 .hero-canvas-loader-inner {
@@ -599,7 +587,7 @@ body::before {
   border: none;
   padding: 0;
   z-index: 200;
-  cursor: none;
+  cursor: pointer;
 }
 
 .hamburger-line {
@@ -926,12 +914,13 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 2rem;
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: none;
-  box-shadow: none;
+  padding: 1.25rem 2.5rem;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   text-align: center;
   max-width: 1000px;
   will-change: transform, opacity, filter;
@@ -950,12 +939,297 @@ body::before {
   .hud-chip {
     font-size: clamp(1.4rem, 5.5vw, 2.1rem);
     max-width: 92%;
-    padding: 0.5rem 1rem;
-    border: none;
-    box-shadow: none;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
+}
+
+/* ============================================================
+   Theme Toggle Button
+   ============================================================ */
+
+.theme-toggle-btn {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 9996;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.35s var(--ease-out-quart);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
+  border-color: var(--color-habesha-gold);
+  box-shadow: 0 0 25px rgba(252, 217, 0, 0.2), 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.92);
+}
+
+.theme-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s var(--ease-out-expo);
+}
+
+/* ============================================================
+   LIGHT MODE — CSS Variable & Style Overrides
+   ============================================================ */
+
+/* Smooth transition for theme switching */
+html, body,
+.how-it-works-section,
+.stats-section,
+.dishes-section,
+.testimonials-section,
+.final-cta-section,
+.taste-of-home-section,
+.site-footer,
+.navbar,
+.navbar-scrolled,
+.hero-canvas-loader,
+.restaurant-card,
+.restaurant-card-body,
+.filter-pill,
+.category-pill,
+.discover-sort-select {
+  transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
+}
+
+[data-theme="light"] {
+  --color-surface: #d8dade;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: rgba(216, 218, 222, 0.75);
+
+  --color-text-primary: #0f0f0f;
+  --color-text-secondary: rgba(15, 15, 15, 0.75);
+  --color-text-tertiary: rgba(15, 15, 15, 0.55);
+
+  --color-border: rgba(0, 0, 0, 0.12);
+  --color-border-subtle: rgba(0, 0, 0, 0.08);
+
+  --color-habesha-gold: #a67c00;
+  --color-habesha-green: #0d7a30;
+  --color-habesha-red: #b91c24;
+
+  --color-gold-badge-bg: rgba(166, 124, 0, 0.12);
+  --color-gold-badge-border: rgba(166, 124, 0, 0.25);
+}
+
+[data-theme="light"] body {
+  background: #c0c2c6;
+  color: #0f0f0f;
+}
+
+/* Override noise overlay for light mode */
+[data-theme="light"] body::before {
+  opacity: 0.02;
+}
+
+/* Gradient blobs — softer for light mode */
+[data-theme="light"] .gradient-blob {
+  opacity: 0.04;
+}
+
+/* Theme toggle button in light mode */
+[data-theme="light"] .theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #0f0f0f;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--color-habesha-gold);
+  box-shadow: 0 0 25px rgba(252, 217, 0, 0.15), 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Custom Cursor — dark in light mode */
+[data-theme="light"] .custom-cursor-dot {
+  background: #0f0f0f;
+}
+
+[data-theme="light"] .custom-cursor-ring {
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+/* Scroll progress bar — keep the colorful gradient */
+
+/* ============================================================
+   Navbar — Light Mode
+   ============================================================ */
+
+[data-theme="light"] .navbar-scrolled {
+  background: rgba(192, 194, 198, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .navbar-link {
+  color: rgba(15, 15, 15, 0.7);
+}
+
+[data-theme="light"] .navbar-link:hover {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .navbar-brand {
+  color: #0f0f0f;
+}
+
+/* Hamburger lines */
+[data-theme="light"] .hamburger-line {
+  background: #0f0f0f;
+}
+
+/* Mobile menu overlay */
+[data-theme="light"] .mobile-menu-overlay {
+  background: rgba(192, 194, 198, 0.97);
+}
+
+[data-theme="light"] .mobile-menu-link {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .mobile-menu-link:hover {
+  color: var(--color-habesha-green);
+}
+
+/* ============================================================
+   Hero Section — Light Mode
+   ============================================================ */
+
+[data-theme="light"] .hero-canvas-loader {
+  background: #c0c2c6;
+}
+
+[data-theme="light"] .loader-text {
+  color: rgba(15, 15, 15, 0.55);
+}
+
+[data-theme="light"] .loader-spinner {
+  border-color: rgba(0, 0, 0, 0.1);
+  border-top-color: var(--color-habesha-green);
+}
+
+[data-theme="light"] .hero-title-top,
+[data-theme="light"] .hero-title-bottom {
+  color: #0a0a0a;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .hero-subhead {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .hero-desc {
+  color: rgba(15, 15, 15, 0.65);
+}
+
+[data-theme="light"] .hero-scroll-indicator {
+  color: rgba(15, 15, 15, 0.8);
+  border-color: rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+[data-theme="light"] .hero-scroll-indicator:hover {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .mini-tag {
+  border-color: rgba(0, 0, 0, 0.18);
+  color: rgba(15, 15, 15, 0.8);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+[data-theme="light"] .floating-badge {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f0f0f;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .floating-badge:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Hero canvas — remove edge fade in light mode */
+[data-theme="light"] .hero-canvas {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+/* HUD chips in light mode */
+[data-theme="light"] .hud-chip {
+  color: #ffffff;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.95), 0 4px 30px rgba(0, 0, 0, 0.85);
+}
+
+[data-theme="light"] .hud-chip .text-highlight-gold {
+  color: #d4b800;
+}
+
+[data-theme="light"] .hud-chip .text-highlight-green {
+  color: #34c759;
+}
+
+[data-theme="light"] .hud-chip .text-highlight-red {
+  color: #ff454f;
+}
+
+/* ============================================================
+   Text Overlay Phases — Light Mode
+   ============================================================ */
+
+[data-theme="light"] .text-overlay-phase {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 16px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .text-overlay-eyebrow {
+  color: rgba(15, 15, 15, 0.55);
+}
+
+[data-theme="light"] .text-overlay-heading {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .text-overlay-subheading {
+  color: rgba(15, 15, 15, 0.7);
+}
+
+/* ============================================================
+   CTA Buttons — Light Mode
+   ============================================================ */
+
+[data-theme="light"] .cta-secondary {
+  color: #0f0f0f;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .cta-secondary:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.25);
 }
 

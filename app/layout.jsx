@@ -3,8 +3,9 @@ import './globals.css';
 import './app.css';
 import SmoothScroll from '@/components/SmoothScroll';
 import ScrollProgress from '@/components/ScrollProgress';
-import CustomCursor from '@/components/CustomCursor';
 import { CartProvider } from '@/lib/CartContext';
+import { ThemeProvider } from '@/lib/ThemeContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -39,20 +40,22 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <CartProvider>
-          <SmoothScroll>
-            {/* Ambient gradient blobs */}
-            <div className="gradient-blobs" aria-hidden="true">
-              <div className="gradient-blob blob-green" />
-              <div className="gradient-blob blob-gold" />
-              <div className="gradient-blob blob-red" />
-            </div>
+        <ThemeProvider>
+          <CartProvider>
+            <SmoothScroll>
+              {/* Ambient gradient blobs */}
+              <div className="gradient-blobs" aria-hidden="true">
+                <div className="gradient-blob blob-green" />
+                <div className="gradient-blob blob-gold" />
+                <div className="gradient-blob blob-red" />
+              </div>
 
-            <ScrollProgress />
-            <CustomCursor />
-            {children}
-          </SmoothScroll>
-        </CartProvider>
+              <ScrollProgress />
+              <ThemeToggle />
+              {children}
+            </SmoothScroll>
+          </CartProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

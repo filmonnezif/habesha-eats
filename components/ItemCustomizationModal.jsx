@@ -95,7 +95,7 @@ export default function ItemCustomizationModal({ item, isOpen, onClose, onAdd })
           transform: 'translateX(-50%)',
           width: '100%',
           maxWidth: '540px',
-          background: '#121212',
+          background: '#22272c',
           borderTopLeftRadius: '28px',
           borderTopRightRadius: '28px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -235,7 +235,7 @@ export default function ItemCustomizationModal({ item, isOpen, onClose, onAdd })
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'rgba(0, 0, 0, 0.2)',
+            background: 'rgba(22, 25, 28, 0.4)',
             borderBottomLeftRadius: '28px',
             borderBottomRightRadius: '28px',
           }}

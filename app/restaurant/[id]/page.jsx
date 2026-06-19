@@ -43,7 +43,7 @@ export default function RestaurantDetailPage({ params }) {
 
   if (!restaurant) {
     return (
-      <div className="discover-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#000', color: '#fff', textAlign: 'center' }}>
+      <div className="discover-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#16191c', color: '#fff', textAlign: 'center' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem' }}>Restaurant Not Found</h2>
         <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>We couldn't find a restaurant matching this identifier.</p>
         <Link href="/discover" className="shiny-btn-mini">Back to Discover</Link>
@@ -85,7 +85,7 @@ export default function RestaurantDetailPage({ params }) {
   };
 
   return (
-    <div className="discover-page" style={{ background: '#000', color: '#fff', minHeight: '100vh', paddingBottom: '6rem' }}>
+    <div className="discover-page" style={{ background: '#16191c', color: '#fff', minHeight: '100vh', paddingBottom: '6rem' }}>
       <AppNavbar />
       <CartDrawer />
       
@@ -121,7 +121,7 @@ export default function RestaurantDetailPage({ params }) {
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 50%, #000 100%)',
+            background: 'linear-gradient(to bottom, rgba(22, 25, 28, 0.1) 0%, rgba(22, 25, 28, 0.45) 50%, #16191c 100%)',
           }}
         />
 
@@ -190,7 +190,7 @@ export default function RestaurantDetailPage({ params }) {
           position: 'sticky',
           top: '80px',
           zIndex: 90,
-          background: 'rgba(0, 0, 0, 0.85)',
+          background: 'rgba(22, 25, 28, 0.85)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
@@ -409,7 +409,7 @@ export default function RestaurantDetailPage({ params }) {
                     style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', color: '#fff', outline: 'none' }}
                   >
                     {[5, 4, 3, 2, 1].map((n) => (
-                      <option key={n} value={n} style={{ background: '#121212', color: '#fff' }}>
+                      <option key={n} value={n} style={{ background: '#22272c', color: '#fff' }}>
                         {n} Stars {n === 5 ? '— Excellent!' : ''}
                       </option>
                     ))}

@@ -94,7 +94,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="discover-page" style={{ background: '#000', color: '#fff', minHeight: '100vh', paddingBottom: '6rem' }}>
+    <div className="discover-page" style={{ background: '#16191c', color: '#fff', minHeight: '100vh', paddingBottom: '6rem' }}>
       <AppNavbar />
       <CartDrawer />
 
@@ -351,7 +351,7 @@ export default function ProfilePage() {
                   <h4 style={{ fontSize: '0.9375rem', fontWeight: 700, margin: '0 0 0.15rem 0' }}>App Language</h4>
                   <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Choose your preferred interface language</p>
                 </div>
-                <select style={{ padding: '0.4rem 0.75rem', background: '#121212', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}>
+                <select style={{ padding: '0.4rem 0.75rem', background: '#22272c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}>
                   <option value="en">English (EN)</option>
                   <option value="am">አማርኛ (AM)</option>
                   <option value="ti">ትግርኛ (TI)</option>

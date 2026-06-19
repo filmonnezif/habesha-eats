@@ -172,10 +172,10 @@ function DiscoverContent() {
               value={selectedEmirate}
               onChange={(e) => setSelectedEmirate(e.target.value)}
               className="discover-sort-select"
-              style={{ background: 'rgba(255, 255, 255, 0.04)', paddingRight: '2rem' }}
+              style={{ paddingRight: '2rem' }}
             >
               {EMIRATES.map((e) => (
-                <option key={e} value={e} style={{ background: '#121212', color: '#fff' }}>
+                <option key={e} value={e} style={{ background: 'var(--color-surface-elevated)', color: 'var(--color-text-primary)' }}>
                   {e}
                 </option>
               ))}
@@ -227,7 +227,7 @@ function DiscoverContent() {
               id="sort-select"
             >
               {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} style={{ background: '#121212', color: '#fff' }}>
+                <option key={opt.value} value={opt.value} style={{ background: 'var(--color-surface-elevated)', color: 'var(--color-text-primary)' }}>
                   {opt.label}
                 </option>
               ))}
@@ -287,10 +287,10 @@ function DiscoverContent() {
             </div>
             {/* Interactive Dark Map Container (Mocked for smooth performance) */}
             <div className="discover-map-container">
-              <div style={{ position: 'absolute', inset: 0, background: '#111', opacity: 0.9 }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'var(--color-surface-elevated)', opacity: 0.9 }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
                   <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🗺️</div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--color-text-primary)' }}>
                     Interactive Map
                   </h3>
                   <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', maxWidth: '280px', margin: '0 auto' }}>
@@ -344,7 +344,7 @@ function DiscoverContent() {
 
 export default function DiscoverPage() {
   return (
-    <Suspense fallback={<div className="discover-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#000', color: '#fff' }}>Loading Discover...</div>}>
+    <Suspense fallback={<div className="discover-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#16191c', color: '#fff' }}>Loading Discover...</div>}>
       <DiscoverContent />
     </Suspense>
   );
