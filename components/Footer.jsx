@@ -2,46 +2,49 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { useLanguage } from '@/lib/LanguageContext';
 
-const linkColumns = [
-  {
-    title: 'Platform',
-    links: [
-      { label: 'How It Works', href: '#how-it-works' },
-      { label: 'Stats', href: '#stats' },
-      { label: 'Popular Dishes', href: '#dishes' },
-      { label: 'Featured Restaurants', href: '#taste-of-home' },
-    ],
-  },
-  {
-    title: 'Discover',
-    links: [
-      { label: 'Ethiopian Cuisine', href: '#dishes' },
-      { label: 'Eritrean Cuisine', href: '#dishes' },
-      { label: 'Vegetarian Options', href: '#dishes' },
-      { label: 'Community Reviews', href: '#testimonials' },
-    ],
-  },
-  {
-    title: 'Company',
-    links: [
-      { label: 'About Us', href: '#hero' },
-      { label: 'Contact', href: '#contact' },
-      { label: 'Join as Restaurant', href: '#final-cta' },
-      { label: 'Platform FAQs', href: '#how-it-works' },
-    ],
-  },
-];
 
 /**
  * Footer — Renders brand columns, styled social media icons,
  * dynamic legal links, and a back-to-top button.
  */
 export default function Footer() {
+  const { t, language } = useLanguage();
   const footerRef = useRef(null);
   const brandRef = useRef(null);
   const columnsRef = useRef(null);
   const [visible, setVisible] = useState(false);
+
+  const linkColumns = [
+    {
+      title: t('footer.platform'),
+      links: [
+        { label: t('navbar.howItWorks'), href: '#how-it-works' },
+        { label: language === 'am' ? 'ቁጥሮች' : language === 'ti' ? 'ቁጽርታት' : language === 'om' ? 'Lakkoofsota' : 'Stats', href: '#stats' },
+        { label: t('dishes.title'), href: '#dishes' },
+        { label: t('tasteOfHome.title'), href: '#taste-of-home' },
+      ],
+    },
+    {
+      title: t('footer.discover'),
+      links: [
+        { label: t('discover.cuisineEth'), href: '#dishes' },
+        { label: t('discover.cuisineEri'), href: '#dishes' },
+        { label: t('discover.vegetarian'), href: '#dishes' },
+        { label: t('testimonials.title'), href: '#testimonials' },
+      ],
+    },
+    {
+      title: t('footer.company'),
+      links: [
+        { label: t('navbar.about'), href: '#hero' },
+        { label: t('navbar.contact'), href: '#contact' },
+        { label: t('finalCta.partnerLink').replace(' →', '').replace('→', '').trim(), href: '#final-cta' },
+        { label: t('navbar.howItWorks'), href: '#how-it-works' },
+      ],
+    },
+  ];
 
   useEffect(() => {
     const el = footerRef.current;
@@ -110,10 +113,10 @@ export default function Footer() {
               <span className="footer-wordmark-habesha">HABESHA</span>
               <span className="footer-wordmark-eats">EATS</span>
             </h2>
-            <p className="footer-tagline">Connecting you to the flavors of home</p>
+            <p className="footer-tagline">{t('footer.tagline')}</p>
           </div>
           <a href="/discover" className="footer-cta shiny-btn-mini">
-            Explore Restaurants
+            {t('navbar.exploreRestaurants')}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
@@ -142,7 +145,7 @@ export default function Footer() {
 
           {/* Connected Social Column */}
           <div className="footer-column" style={{ opacity: 0 }}>
-            <h3 className="footer-column-title">Connect</h3>
+            <h3 className="footer-column-title">{t('footer.connect')}</h3>
             <div className="footer-social-grid" style={{ display: 'flex', gap: '0.85rem', marginTop: '0.75rem' }}>
               <a href="https://instagram.com" className="back-to-top" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
                 <svg className="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -175,20 +178,20 @@ export default function Footer() {
         {/* Row 3: Bottom Bar */}
         <div className="footer-bottom">
           <p className="footer-copyright">
-            © {new Date().getFullYear()} HabeshaEats. All rights reserved.
+            © {new Date().getFullYear()} HabeshaEats. {t('footer.allRightsReserved')}
           </p>
 
           {/* Decorative Ethiopian Logo / Back to Top */}
           <div className="footer-cross">
-            <a href="#hero" onClick={handleBackToTop} className="back-to-top" aria-label="Scroll back to top">
+            <a href="#hero" onClick={handleBackToTop} className="back-to-top" aria-label={t('footer.backToTop')}>
               ↑
             </a>
           </div>
 
           <div className="footer-legal">
-            <a href="#" className="footer-legal-link">Privacy Policy</a>
+            <a href="#" className="footer-legal-link">{t('footer.privacy')}</a>
             <span className="footer-legal-dot">·</span>
-            <a href="#" className="footer-legal-link">Terms of Service</a>
+            <a href="#" className="footer-legal-link">{t('footer.terms')}</a>
           </div>
         </div>
       </div>

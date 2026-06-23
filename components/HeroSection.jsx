@@ -5,6 +5,7 @@ import { gsap } from 'gsap';
 import ScrollController from './ScrollController';
 import HeroCanvas from './HeroCanvas';
 import TextOverlay from './TextOverlay';
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
  * HeroSection is the main wrapper that composes the scroll controller,
@@ -16,9 +17,9 @@ import TextOverlay from './TextOverlay';
  * Includes mouse-position parallax and an entrance animation on load.
  */
 export default function HeroSection() {
+  const { t, language } = useLanguage();
   const [currentFrame, setCurrentFrame] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const bgTitleRef = useRef(null);
   const viewportRef = useRef(null);
   const parallaxRef = useRef({ x: 0, y: 0 });
 
@@ -30,19 +31,19 @@ export default function HeroSection() {
     setScrollProgress(progress);
   }, []);
 
-  // Entrance animation on mount
+  // Entrance animation on mount (or layout change)
   useEffect(() => {
     const tl = gsap.timeline({ delay: 0.3 });
 
     tl.fromTo(
-      '.hero-title-top',
+      '.hero-title-top, .hero-title-symmetrical-left',
       { opacity: 0, y: -40, scale: 0.92, filter: 'blur(10px)' },
       { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 1.2, ease: 'expo.out' },
       0
     );
 
     tl.fromTo(
-      '.hero-title-bottom',
+      '.hero-title-bottom, .hero-title-symmetrical-right',
       { opacity: 0, y: 40, scale: 0.92, filter: 'blur(10px)' },
       { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 1.2, ease: 'expo.out' },
       0.15
@@ -63,7 +64,7 @@ export default function HeroSection() {
     );
 
     return () => tl.kill();
-  }, []);
+  }, [language]);
 
   // Mouse parallax
   useEffect(() => {
@@ -100,34 +101,98 @@ export default function HeroSection() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // HABESHA letter dispersal on scroll
+  // Unified letter dispersal on scroll
   useEffect(() => {
-    if (!bgTitleRef.current) return;
-    const chars = bgTitleRef.current.querySelectorAll('.char-habesha');
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const charsHabesha = viewport.querySelectorAll('.char-habesha');
+    const charsEats = viewport.querySelectorAll('.char-eats');
     
     // Map progress to [0, 1] range within the first 25% scroll distance
     const p = Math.min(1, Math.max(0, scrollProgress / 0.25));
+    const isSymmetrical = language === 'am' || language === 'ti';
 
-    chars.forEach((char, idx) => {
-      const centerDist = idx - (chars.length - 1) / 2;
-      
-      // Calculate kinetic trajectories
-      const xTranslate = centerDist * 90 * p; // Disperse outward horizontally
-      const yTranslate = -140 * p - Math.abs(centerDist) * 30 * p; // Explode upward
-      const rotate = centerDist * 18 * p; // Twist outward
-      const scale = 1 - p * 0.35; // Shrink as they fly out
-      const opacity = 1 - p; // Fade out
+    if (isSymmetrical) {
+      // Symmetrical layout dispersal
+      // Habesha (Left word) -> disperse horizontally to the left
+      charsHabesha.forEach((char, idx) => {
+        const centerDist = idx - (charsHabesha.length - 1) / 2;
+        const xTranslate = (centerDist * 50 - 150) * p; // Shifting left and dispersing
+        const yTranslate = -100 * p - Math.abs(centerDist) * 20 * p;
+        const rotate = (centerDist * 12 - 15) * p;
+        const scale = 1 - p * 0.35;
+        const opacity = 1 - p;
 
-      gsap.set(char, {
-        x: xTranslate,
-        y: yTranslate,
-        rotation: rotate,
-        scale: scale,
-        opacity: opacity,
-        transformOrigin: 'center center'
+        gsap.set(char, {
+          x: xTranslate,
+          y: yTranslate,
+          rotation: rotate,
+          scale: scale,
+          opacity: opacity,
+          transformOrigin: 'center center'
+        });
       });
-    });
-  }, [scrollProgress]);
+
+      // Eats (Right word) -> disperse horizontally to the right
+      charsEats.forEach((char, idx) => {
+        const centerDist = idx - (charsEats.length - 1) / 2;
+        const xTranslate = (centerDist * 50 + 150) * p; // Shifting right and dispersing
+        const yTranslate = 100 * p + Math.abs(centerDist) * 20 * p;
+        const rotate = (centerDist * 12 + 15) * p;
+        const scale = 1 - p * 0.35;
+        const opacity = 1 - p;
+
+        gsap.set(char, {
+          x: xTranslate,
+          y: yTranslate,
+          rotation: rotate,
+          scale: scale,
+          opacity: opacity,
+          transformOrigin: 'center center'
+        });
+      });
+    } else {
+      // Standard stacked layout dispersal
+      // HABESHA (Top word)
+      charsHabesha.forEach((char, idx) => {
+        const centerDist = idx - (charsHabesha.length - 1) / 2;
+        const xTranslate = centerDist * 90 * p;
+        const yTranslate = -140 * p - Math.abs(centerDist) * 30 * p;
+        const rotate = centerDist * 18 * p;
+        const scale = 1 - p * 0.35;
+        const opacity = 1 - p;
+
+        gsap.set(char, {
+          x: xTranslate,
+          y: yTranslate,
+          rotation: rotate,
+          scale: scale,
+          opacity: opacity,
+          transformOrigin: 'center center'
+        });
+      });
+
+      // EATS (Bottom word)
+      charsEats.forEach((char, idx) => {
+        const centerDist = idx - (charsEats.length - 1) / 2;
+        const xTranslate = centerDist * 90 * p;
+        const yTranslate = 140 * p + Math.abs(centerDist) * 30 * p;
+        const rotate = -centerDist * 18 * p;
+        const scale = 1 - p * 0.35;
+        const opacity = 1 - p;
+
+        gsap.set(char, {
+          x: xTranslate,
+          y: yTranslate,
+          rotation: rotate,
+          scale: scale,
+          opacity: opacity,
+          transformOrigin: 'center center'
+        });
+      });
+    }
+  }, [scrollProgress, language]);
 
   // Viewport fade-out at end of hero
   useEffect(() => {
@@ -143,7 +208,9 @@ export default function HeroSection() {
     }
   }, [scrollProgress]);
 
-  const habeshaText = "HABESHA";
+  const habeshaText = t('hero.habesha');
+  const eatsText = t('hero.eats');
+  const isSymmetrical = language === 'am' || language === 'ti';
 
   return (
     <section className="hero-section" id="hero">
@@ -154,17 +221,45 @@ export default function HeroSection() {
         <div className="hero-viewport" ref={viewportRef}>
           {/* Background Text Layer (behind canvas) — parallax bg layer */}
           <div className="hero-background-text-container hero-parallax-bg">
-            <h1 className="hero-title-top" ref={bgTitleRef} style={{ opacity: 0 }}>
-              {Array.from(habeshaText).map((char, idx) => (
-                <span
-                  key={idx}
-                  className="char-habesha"
-                  style={{ display: 'inline-block', willChange: 'transform, opacity' }}
-                >
-                  {char}
-                </span>
-              ))}
-            </h1>
+            {isSymmetrical ? (
+              <div className="hero-symmetrical-row">
+                <h1 className="hero-title-symmetrical-left" style={{ opacity: 0 }}>
+                  {Array.from(habeshaText).map((char, idx) => (
+                    <span
+                      key={idx}
+                      className="char-habesha"
+                      style={{ display: 'inline-block', willChange: 'transform, opacity' }}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </h1>
+                <div className="hero-symmetrical-spacer" />
+                <h1 className="hero-title-symmetrical-right" style={{ opacity: 0 }}>
+                  {Array.from(eatsText).map((char, idx) => (
+                    <span
+                      key={idx}
+                      className="char-eats"
+                      style={{ display: 'inline-block', willChange: 'transform, opacity' }}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </h1>
+              </div>
+            ) : (
+              <h1 className="hero-title-top" style={{ opacity: 0 }}>
+                {Array.from(habeshaText).map((char, idx) => (
+                  <span
+                    key={idx}
+                    className="char-habesha"
+                    style={{ display: 'inline-block', willChange: 'transform, opacity' }}
+                  >
+                    {char}
+                  </span>
+                ))}
+              </h1>
+            )}
           </div>
 
           <HeroCanvas currentFrameIndex={currentFrame} />

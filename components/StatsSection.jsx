@@ -3,55 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import FloatingBeans from './FloatingBeans';
-
-const stats = [
-  {
-    value: 50,
-    suffix: '+',
-    label: 'Habesha Restaurants',
-    color: 'var(--color-habesha-green)',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    value: 10000,
-    suffix: '+',
-    label: 'Orders Placed',
-    color: 'var(--color-habesha-gold)',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    value: 4.8,
-    suffix: '★',
-    label: 'Average Rating',
-    color: 'var(--color-habesha-red)',
-    isDecimal: true,
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    value: 7,
-    suffix: '',
-    label: 'Emirates Covered',
-    color: 'var(--color-habesha-green)',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
-  },
-];
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
  * CountUp — internal animated counter driven by IntersectionObserver.
@@ -108,8 +60,58 @@ function CountUp({ value, suffix = '', isDecimal = false, color, duration = 2000
  * Placed between How It Works and Taste of Home.
  */
 export default function StatsSection() {
+  const { t } = useLanguage();
   const sectionRef = useRef(null);
   const [visible, setVisible] = useState(false);
+
+  const stats = [
+    {
+      value: 50,
+      suffix: '+',
+      label: t('stats.restaurants'),
+      color: 'var(--color-habesha-green)',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
+          <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      value: 10000,
+      suffix: '+',
+      label: t('stats.orders'),
+      color: 'var(--color-habesha-gold)',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      value: 4.8,
+      suffix: '★',
+      label: t('stats.rating'),
+      color: 'var(--color-habesha-red)',
+      isDecimal: true,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      value: 7,
+      suffix: '',
+      label: t('stats.emirates'),
+      color: 'var(--color-habesha-green)',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      ),
+    },
+  ];
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -163,9 +165,9 @@ export default function StatsSection() {
       <FloatingBeans />
       <div className="stats-inner">
         <div className="stats-header">
-          <p className="stats-eyebrow" style={{ opacity: 0 }}>Trusted Platform</p>
+          <p className="stats-eyebrow" style={{ opacity: 0 }}>{t('stats.eyebrow')}</p>
           <h2 className="stats-title" style={{ opacity: 0 }}>
-            The Numbers Speak for Themselves
+            {t('stats.title')}
           </h2>
         </div>
 

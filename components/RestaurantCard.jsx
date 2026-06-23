@@ -1,109 +1,125 @@
 'use client';
 
-import { useRef } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
- * Beautiful glassmorphic card for restaurant list display.
- * Features rating, emirate badge, delivery info, and price range.
+ * Premium glassmorphic restaurant card for the Discover grid.
+ * Features: hover transition, stagger-in animation, hover CTA reveal,
+ * 2-tier tag system, and delivery info overlay.
  */
-export default function RestaurantCard({ restaurant }) {
-  const cardRef = useRef(null);
+export default function RestaurantCard({ restaurant, index = 0 }) {
+  const { translateRestaurant, t } = useLanguage();
+  const tr = translateRestaurant(restaurant);
 
-  const handleMouseMove = (e) => {
-    const card = cardRef.current;
-    if (!card) return;
-
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const xc = rect.width / 2;
-    const yc = rect.height / 2;
-
-    const angleX = -(yc - y) / 20; // gentle tilt
-    const angleY = (xc - x) / 24;
-
-    card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) translateY(-4px)`;
+  // Determine smart open/closed status
+  const getOpenStatus = () => {
+    if (!tr.hours) return { isOpen: true, label: 'Open' };
+    const now = new Date();
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const today = days[now.getDay()];
+    const hours = tr.hours[today];
+    if (!hours) return { isOpen: false, label: 'Closed' };
+    
+    const [openH, openM] = hours.open.split(':').map(Number);
+    const [closeH, closeM] = hours.close.split(':').map(Number);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const openMinutes = openH * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+    
+    if (currentMinutes >= openMinutes && currentMinutes <= closeMinutes) {
+      return { isOpen: true, label: `Open · Closes ${hours.close}` };
+    }
+    return { isOpen: false, label: `Closed · Opens ${hours.open}` };
   };
 
-  const handleMouseLeave = () => {
-    const card = cardRef.current;
-    if (!card) return;
-    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
-  };
+  const status = getOpenStatus();
 
   return (
     <article
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="restaurant-card"
-      style={{
-        transition: 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s',
-        transformStyle: 'preserve-3d',
-        willChange: 'transform',
-      }}
+      className="rc-card"
+      style={{ '--card-index': index }}
     >
-      <Link href={`/restaurant/${restaurant.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-        <div className="restaurant-card-image-wrapper" style={{ position: 'relative', overflow: 'hidden', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', height: '200px' }}>
+      <Link href={`/restaurant/${tr.id}`} className="rc-link">
+        {/* Image Section */}
+        <div className="rc-image-wrapper">
           <img
-            src={restaurant.heroImage}
-            alt={restaurant.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-            className="restaurant-img"
+            src={tr.heroImage}
+            alt={tr.name}
+            className="rc-image"
+            loading="lazy"
           />
-          <span className="card-emirate-badge" style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', padding: '0.35rem 0.75rem', borderRadius: '100px', fontSize: '0.75rem', fontWeight: 600, color: '#ffffff', zIndex: 2 }}>
-            {restaurant.emirate} · {restaurant.area}
+          {/* Gradient overlay for text readability */}
+          <div className="rc-image-gradient" />
+
+          {/* Location badge — top left */}
+          <span className="rc-badge rc-badge-location">
+            {tr.emirate} · {tr.area}
           </span>
-          {restaurant.deliveryTime && (
-            <span style={{ position: 'absolute', bottom: '1rem', left: '1rem', background: 'rgba(0, 0, 0, 0.65)', backdropFilter: 'blur(8px)', padding: '0.35rem 0.75rem', borderRadius: '100px', fontSize: '0.75rem', fontWeight: 600, color: '#ffffff', zIndex: 2, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              🕐 {restaurant.deliveryTime} min
+
+          {/* Delivery time — bottom left */}
+          {tr.deliveryTime && (
+            <span className="rc-badge rc-badge-time">
+              <span className="rc-badge-dot" />
+              {tr.deliveryTime} min
             </span>
           )}
+
+          {/* Delivery fee — bottom right */}
+          <span className="rc-badge rc-badge-fee">
+            {tr.deliveryFee === 0 ? 'Free delivery' : `AED ${tr.deliveryFee} delivery`}
+          </span>
+
+          {/* Hover CTA Reveal */}
+          <div className="rc-hover-cta">
+            <span>{t('tasteOfHome.viewMenu')}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+            </svg>
+          </div>
         </div>
 
-        <div className="restaurant-card-body" style={{ padding: '1.5rem', background: 'var(--color-surface-elevated)', borderBottomLeftRadius: '24px', borderBottomRightRadius: '24px', border: '1px solid var(--color-border-subtle)', borderTop: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div className="restaurant-card-header" style={{ display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 className="restaurant-card-name" style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0, color: 'var(--color-text-primary)' }}>
-              {restaurant.name}
-            </h3>
-            <div className="card-rating-badge" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'var(--color-border-subtle)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-habesha-gold)' }}>
-              <svg className="star-icon" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+        {/* Body Section */}
+        <div className="rc-body">
+          {/* Header: Name + Rating */}
+          <div className="rc-header">
+            <h3 className="rc-name">{tr.name}</h3>
+            <div className="rc-rating">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
                 <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
               </svg>
-              <span>{restaurant.rating}</span>
+              <span>{tr.rating}</span>
             </div>
           </div>
 
-          <p className="restaurant-card-tagline" style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', margin: 0, fontStyle: 'italic' }}>
-            &ldquo;{restaurant.tagline}&rdquo;
-          </p>
+          {/* Tagline */}
+          <p className="rc-tagline">&ldquo;{tr.tagline}&rdquo;</p>
 
-          <p className="restaurant-card-description" style={{ fontSize: '0.8125rem', color: 'var(--color-text-tertiary)', margin: 0, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            {restaurant.description}
-          </p>
+          {/* Description — clamped to 2 lines */}
+          <p className="rc-description">{tr.description}</p>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.25rem' }}>
-            {restaurant.cuisine.map((c) => (
-              <span key={c} style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.2rem 0.5rem', background: 'var(--color-border-subtle)', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
-                {c}
-              </span>
+          {/* 2-Tier Tags */}
+          <div className="rc-tags">
+            {/* Tier 1: Cuisine (muted) */}
+            {tr.cuisine.map((c) => (
+              <span key={c} className="rc-tag rc-tag-cuisine">{c}</span>
             ))}
-            {restaurant.amenities.includes('mesob') && (
-              <span style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.2rem 0.5rem', background: 'var(--color-gold-badge-bg)', border: '1px solid var(--color-gold-badge-border)', borderRadius: '4px', textTransform: 'uppercase', color: 'var(--color-habesha-gold)' }}>
-                Mesob Dining
-              </span>
+            {/* Tier 2: Premium features (highlighted) */}
+            {tr.amenities.includes('mesob') && (
+              <span className="rc-tag rc-tag-premium">Mesob Dining</span>
+            )}
+            {tr.tags.some(tag => tag.toLowerCase().includes('live music')) && (
+              <span className="rc-tag rc-tag-premium">Live Music</span>
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border-subtle)' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
-              Delivery: {restaurant.deliveryFee === 0 ? 'Free' : `AED ${restaurant.deliveryFee}`}
+          {/* Footer: Price + Status */}
+          <div className="rc-footer">
+            <span className={`rc-status ${status.isOpen ? 'rc-status-open' : 'rc-status-closed'}`}>
+              <span className={`rc-status-dot ${status.isOpen ? 'rc-dot-open' : 'rc-dot-closed'}`} />
+              {status.isOpen ? 'Open' : 'Closed'}
             </span>
-            <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-habesha-green)' }}>
-              {restaurant.priceRange}
-            </span>
+            <span className="rc-price">{tr.priceRange}</span>
           </div>
         </div>
       </Link>

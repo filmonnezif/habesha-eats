@@ -6,17 +6,55 @@ import CartDrawer from '@/components/CartDrawer';
 import ItemCustomizationModal from '@/components/ItemCustomizationModal';
 import { useCart } from '@/lib/CartContext';
 import Link from 'next/link';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useLanguage } from '@/lib/LanguageContext';
 import {
   getRestaurantById,
   getReviewsForRestaurant,
-  restaurants,
 } from '@/lib/data';
+import '@/app/restaurant-detail.css';
+
+gsap.registerPlugin(ScrollTrigger);
+
+// Helper to determine if restaurant is open
+const checkIfOpen = (hours) => {
+  if (!hours) return { isOpen: false, text: "Closed" };
+  const now = new Date();
+  const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  const currentDay = days[now.getDay()];
+  const todayHours = hours[currentDay];
+  
+  if (!todayHours || todayHours.open === 'Closed') {
+    return { isOpen: false, text: "Closed today" };
+  }
+  
+  const [openH, openM] = todayHours.open.split(':').map(Number);
+  const [closeH, closeM] = todayHours.close.split(':').map(Number);
+  
+  const openTime = new Date();
+  openTime.setHours(openH, openM, 0);
+  
+  const closeTime = new Date();
+  closeTime.setHours(closeH, closeM, 0);
+  
+  if (closeTime < openTime) {
+    closeTime.setDate(closeTime.getDate() + 1);
+  }
+  
+  const isOpen = now >= openTime && now <= closeTime;
+  return {
+    isOpen,
+    text: isOpen ? "Open Now" : "Closed Now"
+  };
+};
 
 export default function RestaurantDetailPage({ params }) {
-  // Unwrapping params Promise (standard Next.js 16/React 19 pattern)
   const resolvedParams = use(params);
   const restaurantId = resolvedParams.id;
-  const restaurant = getRestaurantById(restaurantId);
+  const { translateRestaurant, t } = useLanguage();
+  const rawRestaurant = getRestaurantById(restaurantId);
+  const restaurant = translateRestaurant(rawRestaurant);
 
   const { items, addItem, totalItems, subtotal, restaurantName } = useCart();
   
@@ -25,6 +63,10 @@ export default function RestaurantDetailPage({ params }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const [activeMenuCategory, setActiveMenuCategory] = useState(restaurant?.menu[0]?.id || '');
+  const [cartFlash, setCartFlash] = useState(false);
+  
+  // Lightbox gallery modal state
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   // Review form states
   const [reviewsList, setReviewsList] = useState([]);
@@ -33,17 +75,92 @@ export default function RestaurantDetailPage({ params }) {
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [newReviewText, setNewReviewText] = useState('');
 
-  const menuSectionsRef = useRef({});
+  const heroBgRef = useRef(null);
 
   useEffect(() => {
     if (restaurant) {
       setReviewsList(getReviewsForRestaurant(restaurant.id));
     }
-  }, [restaurant]);
+  }, [restaurant?.id]);
+
+  // GSAP Parallax scroll on hero background
+  useEffect(() => {
+    if (!heroBgRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.to(heroBgRef.current, {
+        yPercent: 20,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.rd-hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true
+        }
+      });
+    });
+    return () => ctx.revert();
+  }, []);
+
+  // GSAP Stagger Entrance for Menu Items and Reviews
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      if (activeTab === 'menu') {
+        gsap.fromTo(
+          '.rd-menu-item',
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.45, stagger: 0.04, ease: 'power2.out', clearProps: 'all' }
+        );
+      } else if (activeTab === 'reviews') {
+        gsap.fromTo(
+          '.rd-review-card',
+          { opacity: 0, y: 25 },
+          { opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: 'power2.out', clearProps: 'all' }
+        );
+      } else if (activeTab === 'photos') {
+        gsap.fromTo(
+          '.rd-gallery-item',
+          { opacity: 0, scale: 0.95 },
+          { opacity: 1, scale: 1, duration: 0.4, stagger: 0.04, ease: 'power2.out', clearProps: 'all' }
+        );
+      }
+    });
+    return () => ctx.revert();
+  }, [activeTab]);
+
+  // Sidebar Scroll-Spy with IntersectionObserver
+  useEffect(() => {
+    if (activeTab !== 'menu' || !restaurant) return;
+
+    const sections = restaurant.menu.map((cat) => document.getElementById(`category-sec-${cat.id}`));
+    const observerOptions = {
+      root: null,
+      rootMargin: '-180px 0px -40% 0px',
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const catId = entry.target.id.replace('category-sec-', '');
+          setActiveMenuCategory(catId);
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach((sec) => {
+      if (sec) observer.observe(sec);
+    });
+
+    return () => {
+      sections.forEach((sec) => {
+        if (sec) observer.unobserve(sec);
+      });
+    };
+  }, [activeTab, restaurant?.id]);
 
   if (!restaurant) {
     return (
-      <div className="discover-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#16191c', color: '#fff', textAlign: 'center' }}>
+      <div className="rd-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', textAlign: 'center' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem' }}>Restaurant Not Found</h2>
         <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>We couldn't find a restaurant matching this identifier.</p>
         <Link href="/discover" className="shiny-btn-mini">Back to Discover</Link>
@@ -51,15 +168,22 @@ export default function RestaurantDetailPage({ params }) {
     );
   }
 
-  // Handle menu item click
+  const isOpenInfo = checkIfOpen(restaurant.hours);
+
+  // Handle menu item add
   const handleAddItemClick = (item) => {
     if (item.options && item.options.length > 0) {
       setSelectedItem(item);
       setIsCustomizeOpen(true);
     } else {
-      // Direct add to cart
       addItem({ ...item, selectedOptions: {}, specialInstructions: '' }, restaurant);
+      triggerCartFlash();
     }
+  };
+
+  const triggerCartFlash = () => {
+    setCartFlash(true);
+    setTimeout(() => setCartFlash(false), 800);
   };
 
   // Submit mock review
@@ -84,8 +208,29 @@ export default function RestaurantDetailPage({ params }) {
     setShowReviewForm(false);
   };
 
+  // Dynamic rating distribution helper
+  const getRatingDistribution = (reviews) => {
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach(r => {
+      const rating = Math.round(r.rating);
+      if (counts[rating] !== undefined) {
+        counts[rating]++;
+      }
+    });
+    const total = reviews.length || 1;
+    return Object.keys(counts).reduce((acc, key) => {
+      acc[key] = {
+        count: counts[key],
+        pct: Math.round((counts[key] / total) * 100)
+      };
+      return acc;
+    }, {});
+  };
+
+  const ratingDistribution = getRatingDistribution(reviewsList);
+
   return (
-    <div className="discover-page" style={{ background: '#16191c', color: '#fff', minHeight: '100vh', paddingBottom: '6rem' }}>
+    <div className="rd-container">
       <AppNavbar />
       <CartDrawer />
       
@@ -94,82 +239,57 @@ export default function RestaurantDetailPage({ params }) {
         item={selectedItem}
         isOpen={isCustomizeOpen}
         onClose={() => setIsCustomizeOpen(false)}
-        onAdd={(customizedItem) => addItem(customizedItem, restaurant)}
+        onAdd={(customizedItem) => {
+          addItem(customizedItem, restaurant);
+          triggerCartFlash();
+        }}
       />
 
-      {/* Hero Header Banner */}
-      <div
-        style={{
-          position: 'relative',
-          height: '42vh',
-          width: '100%',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Background Image with elegant fade overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url(${restaurant.heroImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.65)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to bottom, rgba(22, 25, 28, 0.1) 0%, rgba(22, 25, 28, 0.45) 50%, #16191c 100%)',
-          }}
-        />
+      {/* Breadcrumb Navigation */}
+      <div className="rd-breadcrumb">
+        <Link href="/discover">Discover</Link>
+        <span>&rsaquo;</span>
+        <span>{restaurant.name}</span>
+      </div>
 
-        {/* Restaurant Details Header */}
+      {/* Hero Header Banner with Parallax */}
+      <div className="rd-hero">
         <div
-          style={{
-            position: 'absolute',
-            bottom: '1.5rem',
-            left: 0,
-            right: 0,
-            padding: '0 2rem',
-            maxWidth: '1280px',
-            margin: '0 auto',
-            zIndex: 2,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            flexWrap: 'wrap',
-            gap: '1.5rem',
-          }}
-        >
+          ref={heroBgRef}
+          className="rd-hero-bg"
+          style={{ backgroundImage: `url(${restaurant.heroImage})` }}
+        />
+        <div className="rd-hero-gradient" />
+
+        {/* Restaurant Details Content */}
+        <div className="rd-hero-content">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+            <div className="rd-hero-tags">
               {restaurant.cuisine.map((c) => (
-                <span key={c} style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', borderRadius: '100px', textTransform: 'uppercase' }}>
+                <span key={c} className="rd-hero-tag">
                   {c}
                 </span>
               ))}
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.75rem', background: 'rgba(52, 199, 89, 0.15)', color: 'var(--color-habesha-green)', borderRadius: '100px', textTransform: 'uppercase' }}>
-                🟢 Open Now
+              <span className={`rd-hero-tag ${isOpenInfo.isOpen ? 'rd-hero-status-open' : 'rd-hero-status-closed'}`}>
+                {isOpenInfo.isOpen ? '🟢 Open Now' : '🔴 Closed Now'}
               </span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4.5vw, 3.25rem)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', margin: '0 0 0.5rem 0' }}>
+            <h1 className="rd-hero-title">
               {restaurant.name}
             </h1>
-            <p style={{ fontSize: '1rem', color: 'rgba(255, 255, 255, 0.7)', margin: 0, fontStyle: 'italic', maxWidth: '600px' }}>
+            <p className="rd-hero-tagline">
               &ldquo;{restaurant.tagline}&rdquo;
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.75rem', fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.5)' }}>
+            <div className="rd-hero-meta">
               <span>📍 {restaurant.emirate} · {restaurant.area}</span>
               <span>•</span>
-              <span style={{ color: 'var(--color-habesha-gold)', fontWeight: 600 }}>★ {restaurant.rating} ({restaurant.reviewCount} reviews)</span>
+              <span className="rd-hero-rating">★ {restaurant.rating} ({reviewsList.length} {t('tasteOfHome.reviews')})</span>
               <span>•</span>
-              <span style={{ fontWeight: 700, color: '#fff' }}>{restaurant.priceRange}</span>
+              <span className="rd-hero-price">{restaurant.priceRange}</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="rd-hero-actions">
             <a href="#menu-start" className="shiny-btn" style={{ padding: '0.75rem 1.5rem', fontSize: '0.875rem' }}>
               Order Delivery
             </a>
@@ -185,84 +305,41 @@ export default function RestaurantDetailPage({ params }) {
       </div>
 
       {/* Sticky Navigation Tabs */}
-      <section
-        style={{
-          position: 'sticky',
-          top: '80px',
-          zIndex: 90,
-          background: 'rgba(22, 25, 28, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        }}
-        id="menu-start"
-      >
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 2rem', display: 'flex', gap: '2rem', height: '54px', alignItems: 'center' }}>
+      <section className="rd-tabs" id="menu-start">
+        <div className="rd-tabs-inner" role="tablist" aria-label="Restaurant Details Tabs">
           {['menu', 'reviews', 'photos', 'info'].map((tab) => (
             <button
               key={tab}
+              id={`tab-${tab}`}
+              role="tab"
+              aria-selected={activeTab === tab}
+              aria-controls={`tabpanel-${tab}`}
               onClick={() => setActiveTab(tab)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: activeTab === tab ? '#fff' : 'rgba(255, 255, 255, 0.6)',
-                fontFamily: 'var(--font-display)',
-                fontSize: '0.9375rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                cursor: 'pointer',
-                position: 'relative',
-                height: '100%',
-                padding: '0 0.5rem',
-                transition: 'color 0.2s',
-              }}
+              className={`rd-tab-btn ${activeTab === tab ? 'rd-tab-btn-active' : ''}`}
             >
               {tab}
-              {activeTab === tab && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: '2px',
-                    background: 'var(--color-habesha-gold)',
-                  }}
-                />
-              )}
+              {activeTab === tab && <span className="rd-tab-line" />}
             </button>
           ))}
         </div>
       </section>
 
       {/* Main Content Sections */}
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem' }}>
+      <div className="rd-content-wrapper">
         
         {/* TAB 1: MENU */}
         {activeTab === 'menu' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '3rem', alignItems: 'start' }}>
-            {/* Left Category Navigation (Desktop) */}
-            <aside style={{ position: 'sticky', top: '160px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }} className="menu-aside-nav">
+          <div className="rd-menu-layout" role="tabpanel" id="tabpanel-menu" aria-labelledby="tab-menu">
+            {/* Left Category Navigation (Desktop Sidebar / Mobile Horizontal scroll) */}
+            <aside className="rd-menu-aside">
               {restaurant.menu.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => {
                     setActiveMenuCategory(cat.id);
-                    document.getElementById(`category-sec-${cat.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById(`category-sec-${cat.id}`)?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  style={{
-                    background: activeMenuCategory === cat.id ? 'rgba(255, 255, 255, 0.04)' : 'transparent',
-                    border: 'none',
-                    textAlign: 'left',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    color: activeMenuCategory === cat.id ? 'var(--color-habesha-gold)' : 'rgba(255,255,255,0.7)',
-                    fontWeight: 700,
-                    fontSize: '0.875rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
+                  className={`rd-menu-aside-btn ${activeMenuCategory === cat.id ? 'rd-menu-aside-btn-active' : ''}`}
                 >
                   {cat.name}
                 </button>
@@ -270,54 +347,44 @@ export default function RestaurantDetailPage({ params }) {
             </aside>
 
             {/* Menu Items Content */}
-            <div>
+            <div style={{ flex: 1 }}>
               {restaurant.menu.map((cat) => (
                 <section
                   key={cat.id}
                   id={`category-sec-${cat.id}`}
-                  style={{ marginBottom: '3rem' }}
+                  className="rd-menu-category-section"
                 >
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 800, textTransform: 'uppercase', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
+                  <h2 className="rd-menu-category-title">
                     {cat.name}
                   </h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.5rem' }}>
+                  <div className="rd-menu-grid">
                     {cat.items.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.02)',
-                          border: '1px solid rgba(255, 255, 255, 0.06)',
-                          borderRadius: '16px',
-                          padding: '1.25rem',
-                          display: 'flex',
-                          gap: '1rem',
-                          alignItems: 'center',
-                          transition: 'all 0.3s',
-                        }}
-                        className="menu-item-card"
-                      >
+                      <div key={item.id} className="rd-menu-item">
                         {item.image && (
                           <img
                             src={item.image}
                             alt={item.name}
-                            style={{ width: '90px', height: '90px', objectFit: 'cover', borderRadius: '12px' }}
+                            className="rd-menu-item-img"
                           />
                         )}
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                            <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, margin: 0 }}>{item.name}</h3>
-                            <span style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--color-habesha-green)' }}>AED {item.price}</span>
+                        <div className="rd-menu-item-body">
+                          <div className="rd-menu-item-header">
+                            <h3 className="rd-menu-item-name">{item.name}</h3>
+                            <span className="rd-menu-item-price">AED {item.price}</span>
                           </div>
-                          <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.5)', margin: '0 0 0.75rem 0', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          <p className="rd-menu-item-desc">
                             {item.description}
                           </p>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', gap: '0.25rem' }}>
+                          <div className="rd-menu-item-footer">
+                            <div className="rd-item-tags">
                               {item.tags.includes('spicy') && (
-                                <span style={{ fontSize: '0.625rem', fontWeight: 700, background: 'rgba(255, 69, 79, 0.12)', color: 'var(--color-habesha-red)', padding: '0.15rem 0.4rem', borderRadius: '4px' }}>🌶️ Spicy</span>
+                                <span className="rd-item-tag rd-item-tag-spicy">🌶️ Spicy</span>
                               )}
                               {item.tags.includes('vegan') && (
-                                <span style={{ fontSize: '0.625rem', fontWeight: 700, background: 'rgba(52, 199, 89, 0.12)', color: 'var(--color-habesha-green)', padding: '0.15rem 0.4rem', borderRadius: '4px' }}>🌱 Vegan</span>
+                                <span className="rd-item-tag rd-item-tag-vegan">🌱 Vegan</span>
+                              )}
+                              {item.tags.includes('popular') && (
+                                <span className="rd-item-tag rd-item-tag-popular">🔥 Popular</span>
                               )}
                             </div>
                             <button
@@ -340,9 +407,9 @@ export default function RestaurantDetailPage({ params }) {
 
         {/* TAB 2: REVIEWS */}
         {activeTab === 'reviews' && (
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            {/* Reviews Summary Stats */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '2rem', padding: '2rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '20px', marginBottom: '2rem' }} className="reviews-summary-flex">
+          <div className="rd-reviews-container" role="tabpanel" id="tabpanel-reviews" aria-labelledby="tab-reviews">
+            {/* Reviews Summary & Rating Distribution Bar Chart */}
+            <div className="rd-reviews-summary">
               <div>
                 <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', margin: '0 0 0.5rem 0' }}>Overall Rating</p>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
@@ -355,6 +422,22 @@ export default function RestaurantDetailPage({ params }) {
                   ))}
                 </div>
                 <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem', marginBlockEnd: 0 }}>Based on {reviewsList.length} reviews</p>
+              </div>
+
+              {/* Dynamic bar chart rating distribution */}
+              <div className="rd-rating-breakdown">
+                {[5, 4, 3, 2, 1].map((stars) => {
+                  const dist = ratingDistribution[stars] || { count: 0, pct: 0 };
+                  return (
+                    <div key={stars} className="rd-rating-bar-row">
+                      <span style={{ width: '45px' }}>{stars} Star</span>
+                      <div className="rd-rating-bar-bg">
+                        <div className="rd-rating-bar-fill" style={{ width: `${dist.pct}%` }} />
+                      </div>
+                      <span style={{ width: '30px', textAlign: 'right' }}>{dist.pct}%</span>
+                    </div>
+                  );
+                })}
               </div>
 
               <button
@@ -439,25 +522,24 @@ export default function RestaurantDetailPage({ params }) {
             )}
 
             {/* Reviews List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {reviewsList.map((rev) => (
-                <div
-                  key={rev.id}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: '16px',
-                    padding: '1.5rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div key={rev.id} className="rd-review-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                      <div 
+                        className="rd-review-avatar"
+                        style={{
+                          background: rev.rating >= 4 ? 'rgba(52, 199, 89, 0.15)' : 'rgba(252, 217, 0, 0.15)',
+                          color: rev.rating >= 4 ? 'var(--color-habesha-green)' : 'var(--color-habesha-gold)',
+                          border: `1px solid ${rev.rating >= 4 ? 'rgba(52, 199, 89, 0.25)' : 'rgba(252, 217, 0, 0.25)'}`
+                        }}
+                      >
                         {rev.userName.charAt(0)}
                       </div>
                       <div>
                         <h4 style={{ fontSize: '0.875rem', fontWeight: 700, margin: 0 }}>{rev.userName}</h4>
-                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>{rev.date}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>{rev.date}</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', color: 'var(--color-habesha-gold)', gap: '0.1rem' }}>
@@ -466,13 +548,13 @@ export default function RestaurantDetailPage({ params }) {
                       ))}
                     </div>
                   </div>
-                  <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, margin: '0 0 1rem 0' }}>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.5, margin: '0 0 1rem 0' }}>
                     &ldquo;{rev.text}&rdquo;
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <button
                       onClick={() => alert('Thanks for marking this review as helpful!')}
-                      style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                      style={{ background: 'none', border: 'none', color: 'var(--color-text-tertiary)', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                     >
                       👍 Helpful ({rev.helpfulCount})
                     </button>
@@ -483,36 +565,63 @@ export default function RestaurantDetailPage({ params }) {
           </div>
         )}
 
-        {/* TAB 3: PHOTOS */}
+        {/* TAB 3: PHOTOS & LIGHTBOX */}
         {activeTab === 'photos' && (
-          <div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.5rem' }}>
+          <div role="tabpanel" id="tabpanel-photos" aria-labelledby="tab-photos">
+            <div className="rd-gallery-grid">
               {restaurant.images.map((imgUrl, i) => (
                 <div
                   key={i}
-                  style={{
-                    height: '240px',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                  }}
+                  className="rd-gallery-item"
+                  onClick={() => setLightboxIndex(i)}
                 >
                   <img
                     src={imgUrl}
                     alt={`${restaurant.name} gallery ${i}`}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.04)'}
-                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                    className="rd-gallery-img"
                   />
                 </div>
               ))}
             </div>
+
+            {/* Photo Lightbox Overlay */}
+            {lightboxIndex !== null && (
+              <div className="rd-lightbox rd-lightbox-active" onClick={() => setLightboxIndex(null)}>
+                <div className="rd-lightbox-content" onClick={(e) => e.stopPropagation()}>
+                  <button className="rd-lightbox-close" onClick={() => setLightboxIndex(null)}>×</button>
+                  <img
+                    src={restaurant.images[lightboxIndex]}
+                    alt={`${restaurant.name} photo ${lightboxIndex}`}
+                    className="rd-lightbox-img"
+                  />
+                  {restaurant.images.length > 1 && (
+                    <>
+                      <button
+                        className="rd-lightbox-arrow rd-lightbox-arrow-left"
+                        onClick={() => setLightboxIndex((prev) => (prev === 0 ? restaurant.images.length - 1 : prev - 1))}
+                      >
+                        &larr;
+                      </button>
+                      <button
+                        className="rd-lightbox-arrow rd-lightbox-arrow-right"
+                        onClick={() => setLightboxIndex((prev) => (prev === restaurant.images.length - 1 ? 0 : prev + 1))}
+                      >
+                        &rarr;
+                      </button>
+                    </>
+                  )}
+                  <div className="rd-lightbox-caption">
+                    {restaurant.name} — Photo {lightboxIndex + 1} of {restaurant.images.length}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* TAB 4: INFO */}
         {activeTab === 'info' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }} className="info-tab-flex">
+          <div className="rd-info-grid" role="tabpanel" id="tabpanel-info" aria-labelledby="tab-info">
             {/* Hours */}
             <div>
               <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 800, textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
@@ -532,7 +641,7 @@ export default function RestaurantDetailPage({ params }) {
                   return (
                     <div key={day.code} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <span style={{ fontWeight: 600 }}>{day.name}</span>
-                      <span style={{ color: 'rgba(255,255,255,0.6)' }}>{hrs.open} - {hrs.close}</span>
+                      <span style={{ color: 'var(--color-text-secondary)' }}>{hrs.open} - {hrs.close}</span>
                     </div>
                   );
                 })}
@@ -565,10 +674,10 @@ export default function RestaurantDetailPage({ params }) {
               <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 800, textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
                 Address & Contact
               </h3>
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', margin: '0 0 0.5rem 0' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', margin: '0 0 0.5rem 0' }}>
                 🏢 {restaurant.address}
               </p>
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.8)', margin: 0 }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', margin: 0 }}>
                 📞 +971 4 345 6789 (Mock Phone)
               </p>
             </div>
@@ -578,13 +687,13 @@ export default function RestaurantDetailPage({ params }) {
 
       {/* Sticky Bottom Order Bar */}
       {totalItems > 0 && (
-        <div className="sticky-order-bar">
+        <div className={`sticky-order-bar ${cartFlash ? 'cart-flash' : ''}`}>
           <div className="sticky-order-info">
-            <span>🛒 {totalItems} {totalItems === 1 ? 'item' : 'items'}</span>
+            <span>🛒 {totalItems} {totalItems === 1 ? t('discover.stickyItem') : t('discover.stickyItems')}</span>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
             <span style={{ color: 'var(--color-habesha-green)', fontWeight: 700 }}>AED {subtotal}</span>
             {restaurantName && restaurantName !== restaurant.name && (
-              <span className="sticky-order-restaurant">from {restaurantName}</span>
+              <span className="sticky-order-restaurant">{t('discover.stickyFrom')} {restaurantName}</span>
             )}
           </div>
           <button
@@ -595,7 +704,7 @@ export default function RestaurantDetailPage({ params }) {
             className="shiny-btn-mini"
             style={{ padding: '0.5rem 1.25rem' }}
           >
-            View Cart &rarr;
+            {t('discover.stickyViewCart')}
           </button>
         </div>
       )}

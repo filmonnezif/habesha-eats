@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
  * TextOverlay renders the foreground display elements:
@@ -10,6 +11,7 @@ import { gsap } from 'gsap';
  * - Scroll indicator in the bottom-right, animated with exit slide on scroll
  */
 export default function TextOverlay({ progress = 0 }) {
+  const { t, language } = useLanguage();
   const containerRef = useRef(null);
   const titleRef = useRef(null);
   const descRef = useRef(null);
@@ -18,31 +20,7 @@ export default function TextOverlay({ progress = 0 }) {
   const msg2Ref = useRef(null);
 
   useEffect(() => {
-    if (!titleRef.current) return;
-    const chars = titleRef.current.querySelectorAll('.char-eats');
-    
-    // Map progress to [0, 1] range within the first 25% scroll distance
     const p = Math.min(1, Math.max(0, progress / 0.25));
-
-    // Staggered kinetic letter explosion for "EATS"
-    chars.forEach((char, idx) => {
-      const centerDist = idx - (chars.length - 1) / 2;
-      
-      const xTranslate = centerDist * 90 * p; // Disperse horizontally
-      const yTranslate = 140 * p + Math.abs(centerDist) * 30 * p; // Explode downwards
-      const rotate = -centerDist * 18 * p; // Twist outward
-      const scale = 1 - p * 0.35; // Shrink
-      const opacity = 1 - p; // Fade out
-
-      gsap.set(char, {
-        x: xTranslate,
-        y: yTranslate,
-        rotation: rotate,
-        scale: scale,
-        opacity: opacity,
-        transformOrigin: 'center center'
-      });
-    });
 
     // Animate bottom-left description sliding left, fading out, and blurring
     if (descRef.current) {
@@ -104,25 +82,30 @@ export default function TextOverlay({ progress = 0 }) {
     // Animate the two messages sequentially across the scroll space
     animateMsg(msg1Ref, 0.28, 0.34, 0.46, 0.52);
     animateMsg(msg2Ref, 0.53, 0.59, 0.72, 0.78);
-  }, [progress]);
+  }, [progress, t]);
 
-  const eatsText = "EATS";
+  const eatsText = t('hero.eats');
+  const isSymmetrical = language === 'am' || language === 'ti';
 
   return (
     <div ref={containerRef} className="hero-text-overlay hero-parallax-fg">
       {/* Centered Typography */}
-      <div className="hero-title-middle-spacer"></div>
-      <h1 className="hero-title-bottom" ref={titleRef} style={{ opacity: 0 }}>
-        {Array.from(eatsText).map((char, idx) => (
-          <span
-            key={idx}
-            className="char-eats"
-            style={{ display: 'inline-block', willChange: 'transform, opacity' }}
-          >
-            {char}
-          </span>
-        ))}
-      </h1>
+      {!isSymmetrical && (
+        <>
+          <div className="hero-title-middle-spacer"></div>
+          <h1 className="hero-title-bottom" ref={titleRef} style={{ opacity: 0 }}>
+            {Array.from(eatsText).map((char, idx) => (
+              <span
+                key={idx}
+                className="char-eats"
+                style={{ display: 'inline-block', willChange: 'transform, opacity' }}
+              >
+                {char}
+              </span>
+            ))}
+          </h1>
+        </>
+      )}
 
       {/* Sequential HUD Chips (rendered over hologram UAE map) */}
       <div
@@ -130,7 +113,7 @@ export default function TextOverlay({ progress = 0 }) {
         className="hud-chip"
         style={{ display: 'none', position: 'absolute', willChange: 'transform, opacity, filter' }}
       >
-        Your Gateway to <span className="text-highlight-gold">Habesha Cuisine</span> Across the <span className="text-highlight-green">UAE</span>
+        {t('hero.hudMsg1')}
       </div>
 
       <div
@@ -138,17 +121,17 @@ export default function TextOverlay({ progress = 0 }) {
         className="hud-chip"
         style={{ display: 'none', position: 'absolute', willChange: 'transform, opacity, filter' }}
       >
-        Menus, Prices &amp; Delivery — <span className="text-highlight-red">All in One Place</span>
+        {t('hero.hudMsg2')}
       </div>
 
       {/* Bottom-Left Slogan and Description */}
       <div className="hero-bottom-left-content" ref={descRef} style={{ willChange: 'transform, opacity, filter' }}>
-        <h2 className="hero-subhead">Discover &bull; Compare &bull; Order</h2>
+        <h2 className="hero-subhead">{t('hero.slogan')}</h2>
         <p className="hero-desc" style={{ marginBottom: '1.5rem' }}>
-          Find authentic Ethiopian &amp; Eritrean restaurants, explore their menus, compare prices, and order delivery — all from one place.
+          {t('hero.desc')}
         </p>
         <a href="/discover" className="shiny-btn">
-          Explore Restaurants
+          {t('navbar.exploreRestaurants')}
           <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
@@ -162,7 +145,7 @@ export default function TextOverlay({ progress = 0 }) {
         ref={scrollRef}
         style={{ willChange: 'transform, opacity' }}
       >
-        <span>Scroll to Explore</span>
+        <span>{t('hero.scroll')}</span>
         <span className="scroll-arrow scroll-arrow-bounce">↓</span>
       </a>
     </div>

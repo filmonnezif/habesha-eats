@@ -3,54 +3,56 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import FloatingBeans from './FloatingBeans';
-
-const dishes = [
-  {
-    name: 'Doro Wot',
-    description: 'Slow-braised chicken stew in rich berbere sauce, a cornerstone of Ethiopian cuisine',
-    image: '/images/dish_doro_wot.webp',
-    tag: 'Signature',
-  },
-  {
-    name: 'Kitfo',
-    description: 'Ethiopian steak tartare seasoned with mitmita spice and niter kibbeh butter',
-    image: '/images/dish_kitfo.webp',
-    tag: 'Delicacy',
-  },
-  {
-    name: 'Injera & Beyaynetu',
-    description: 'Sourdough flatbread with an assortment of colorful vegetarian and meat stews',
-    image: '/images/dish_injera.webp',
-    tag: 'Classic',
-  },
-  {
-    name: 'Tibs',
-    description: 'Sizzling sautéed meat with peppers, onions, and rosemary in a clay dish',
-    image: '/images/dish_tibs.webp',
-    tag: 'Popular',
-  },
-  {
-    name: 'Shiro',
-    description: 'Creamy chickpea stew seasoned with garlic, ginger, and Ethiopian spices',
-    image: '/images/dish_shiro.webp',
-    tag: 'Vegan',
-  },
-  {
-    name: 'Coffee Ceremony',
-    description: 'Traditional roasting, grinding, and brewing ritual — the heart of Habesha hospitality',
-    image: '/images/dish_coffee.webp',
-    tag: 'Cultural',
-  },
-];
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
  * PopularDishes — Horizontal scrolling showcase of popular Habesha dishes.
  * Each card reveals on scroll with staggered animation.
  */
 export default function PopularDishes() {
+  const { t } = useLanguage();
   const sectionRef = useRef(null);
   const trackRef = useRef(null);
   const [visible, setVisible] = useState(false);
+
+  const dishes = [
+    {
+      name: 'Doro Wot',
+      description: t('dishes.doro'),
+      image: '/images/dish_doro_wot.webp',
+      tag: t('dishes.tags.signature'),
+    },
+    {
+      name: 'Kitfo',
+      description: t('dishes.kitfo'),
+      image: '/images/dish_kitfo.webp',
+      tag: t('dishes.tags.delicacy'),
+    },
+    {
+      name: 'Injera & Beyaynetu',
+      description: t('dishes.injera'),
+      image: '/images/dish_injera.webp',
+      tag: t('dishes.tags.classic'),
+    },
+    {
+      name: 'Tibs',
+      description: t('dishes.tibs'),
+      image: '/images/dish_tibs.webp',
+      tag: t('dishes.tags.popular'),
+    },
+    {
+      name: 'Shiro',
+      description: t('dishes.shiro'),
+      image: '/images/dish_shiro.webp',
+      tag: t('dishes.tags.vegan'),
+    },
+    {
+      name: 'Coffee Ceremony',
+      description: t('dishes.coffee'),
+      image: '/images/dish_coffee.webp',
+      tag: t('dishes.tags.cultural'),
+    },
+  ];
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -104,9 +106,9 @@ export default function PopularDishes() {
       <FloatingBeans />
       <div className="dishes-inner">
         <div className="dishes-header">
-          <p className="dishes-eyebrow" style={{ opacity: 0 }}>Explore the Flavors</p>
+          <p className="dishes-eyebrow" style={{ opacity: 0 }}>{t('dishes.eyebrow')}</p>
           <h2 className="dishes-title" style={{ opacity: 0 }}>
-            Popular Habesha Dishes
+            {t('dishes.title')}
           </h2>
         </div>
 

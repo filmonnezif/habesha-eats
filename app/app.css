@@ -74,6 +74,112 @@
   color: #ffffff;
 }
 
+/* Autocomplete Suggestions Dropdown */
+.app-search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(34, 39, 44, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  z-index: 150;
+  padding: 0.5rem 0;
+}
+
+.app-search-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-search-suggestion-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-search-suggestion-img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.app-search-suggestion-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  font-size: 1.1rem;
+}
+
+.app-search-suggestion-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-search-suggestion-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-search-suggestion-subtitle {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-search-suggestion-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(252, 217, 0, 0.12);
+  color: var(--color-habesha-gold);
+  border: 1px solid rgba(252, 217, 0, 0.2);
+}
+
+[data-theme="light"] .app-search-suggestions {
+  background: rgba(240, 242, 245, 0.95);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .app-search-suggestion-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .app-search-suggestion-title {
+  color: #0f0f0f;
+}
+
+[data-theme="light"] .app-search-suggestion-subtitle {
+  color: rgba(15, 15, 15, 0.55);
+}
+
+[data-theme="light"] .app-search-suggestion-icon {
+  background: rgba(0, 0, 0, 0.03);
+}
+
 .app-navbar-actions {
   display: flex;
   align-items: center;
@@ -420,11 +526,10 @@
   position: sticky;
   top: 80px;
   z-index: 90;
-  background: rgba(22, 25, 28, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #16191c;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.5rem 0;
+  margin-bottom: 2rem;
 }
 
 .discover-controls-inner {
@@ -444,6 +549,8 @@
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
 }
 
 .discover-filters::-webkit-scrollbar {
@@ -555,27 +662,318 @@
   gap: 2rem;
 }
 
-/* Premium Card shadows & transitions */
-.restaurant-card {
-  border-radius: 24px;
+/* Results count */
+.discover-results-count {
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  padding: 0 0 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-left: 2rem;
+}
+
+.discover-results-count span {
+  color: var(--color-habesha-green);
+  font-weight: 800;
+}
+
+/* ============================================================
+   Restaurant Card — .rc-* Design System
+   ============================================================ */
+
+.rc-card {
+  border-radius: 20px;
   background: transparent;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.25s;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
-.restaurant-card:hover {
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+.rc-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
-.restaurant-card:hover .restaurant-img {
-  transform: scale(1.05);
+.rc-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
-[data-theme="light"] .restaurant-card {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+/* Image */
+.rc-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+  height: 200px;
 }
 
-[data-theme="light"] .restaurant-card:hover {
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.1);
+.rc-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s var(--ease-out-expo);
+}
+
+.rc-card:hover .rc-image {
+  transform: scale(1.06);
+}
+
+.rc-image-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Badges on image */
+.rc-badge {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 0.3rem 0.7rem;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #ffffff;
+  z-index: 2;
+  letter-spacing: 0.01em;
+}
+
+.rc-badge-location {
+  top: 0.85rem;
+  left: 0.85rem;
+}
+
+.rc-badge-time {
+  bottom: 0.85rem;
+  left: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.rc-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-habesha-green);
+  display: inline-block;
+}
+
+.rc-badge-fee {
+  bottom: 0.85rem;
+  right: 0.85rem;
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+
+/* Hover CTA reveal */
+.rc-hover-cta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: linear-gradient(90deg, var(--color-habesha-green), var(--color-habesha-gold));
+  color: #000;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transform: translateY(100%);
+  transition: transform 0.35s var(--ease-out-expo);
+  z-index: 3;
+}
+
+.rc-card:hover .rc-hover-cta {
+  transform: translateY(0);
+}
+
+/* Body */
+.rc-body {
+  padding: 1.25rem;
+  background: var(--color-surface-elevated);
+  border-radius: 0 0 20px 20px;
+  border: 1px solid var(--color-border-subtle);
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rc-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.rc-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: var(--color-border-subtle);
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-habesha-gold);
+  flex-shrink: 0;
+}
+
+.rc-tagline {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.rc-description {
+  font-size: 0.775rem;
+  color: var(--color-text-tertiary);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.45;
+}
+
+/* 2-Tier Tag System */
+.rc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+}
+
+.rc-tag {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.18rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rc-tag-cuisine {
+  background: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+
+.rc-tag-premium {
+  background: var(--color-gold-badge-bg);
+  border: 1px solid var(--color-gold-badge-border);
+  color: var(--color-habesha-gold);
+}
+
+/* Footer */
+.rc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.35rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.rc-status {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.rc-status-open { color: var(--color-habesha-green); }
+.rc-status-closed { color: var(--color-habesha-red); }
+
+.rc-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.rc-dot-open { background: var(--color-habesha-green); }
+.rc-dot-closed { background: var(--color-habesha-red); }
+
+.rc-price {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-habesha-green);
+}
+
+/* Light mode overrides for cards */
+[data-theme="light"] .rc-card {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .rc-card:hover {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================
+   Cultural Story Cards
+   ============================================================ */
+
+.cultural-card {
+  grid-column: 1 / -1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid var(--color-habesha-gold);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cultural-card-emoji {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.cultural-card-body h4 {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-habesha-gold);
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cultural-card-body p {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+[data-theme="light"] .cultural-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.06);
+  border-left-color: var(--color-habesha-gold);
 }
 
 /* Empty states */
@@ -607,7 +1005,7 @@
   height: 380px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   position: relative;
 }
@@ -646,6 +1044,12 @@
   max-width: calc(100vw - 32px);
   width: 500px;
   justify-content: space-between;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.sticky-order-bar.cart-flash {
+  background: rgba(52, 199, 89, 0.2);
+  box-shadow: 0 10px 40px rgba(52, 199, 89, 0.3);
 }
 
 .sticky-order-info {
@@ -664,48 +1068,6 @@
   overflow: hidden;
   text-shadow: none;
   text-overflow: ellipsis;
-}
-
-/* Map Toggle Button */
-.map-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.25rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 100px;
-  color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.map-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.discover-split-view {
-  display: grid;
-  grid-template-columns: 1fr 450px;
-  gap: 2rem;
-  align-items: start;
-}
-
-/* Map container styling */
-.discover-map-container {
-  height: calc(100vh - 200px);
-  position: sticky;
-  top: 160px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Responsive adjustments for App Layout */
@@ -904,7 +1266,7 @@
 }
 
 [data-theme="light"] .discover-controls {
-  background: rgba(216, 218, 222, 0.9);
+  background: #d8dade;
   border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -980,4 +1342,110 @@
 
 [data-theme="light"] .cart-backdrop {
   background: rgba(255, 255, 255, 0.5);
+}
+
+/* Custom Dropdown Styling */
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  min-width: 150px;
+}
+
+.custom-dropdown-trigger:hover,
+.custom-dropdown-trigger:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-habesha-gold);
+}
+
+.custom-dropdown-chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.3s ease;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.custom-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: rgba(34, 39, 44, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  padding: 0.4rem;
+  margin: 0;
+  list-style: none;
+  z-index: 100;
+  min-width: 190px;
+}
+
+.custom-dropdown-option {
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-dropdown-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.custom-dropdown-option.selected {
+  color: var(--color-habesha-gold);
+  background: rgba(252, 217, 0, 0.08);
+  font-weight: 700;
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .custom-dropdown-trigger {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: var(--color-text-primary);
+}
+
+[data-theme="light"] .custom-dropdown-trigger:hover,
+[data-theme="light"] .custom-dropdown-trigger:focus {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--color-habesha-gold);
+}
+
+[data-theme="light"] .custom-dropdown-chevron {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .custom-dropdown-menu {
+  background: rgba(240, 242, 245, 0.95);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .custom-dropdown-option:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .custom-dropdown-option.selected {
+  background: rgba(252, 217, 0, 0.06);
 }

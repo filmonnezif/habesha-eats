@@ -5,11 +5,13 @@ import { gsap } from 'gsap';
 import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
 import { getRestaurantById } from '@/lib/data';
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
  * CartDrawer — Right slide-over panel showing cart items.
  */
 export default function CartDrawer() {
+  const { t, language } = useLanguage();
   const {
     items, restaurantId, restaurantName,
     isCartOpen, setIsCartOpen,
@@ -36,6 +38,41 @@ export default function CartDrawer() {
       gsap.to(backdropRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 });
       gsap.to(drawerRef.current, { x: '100%', duration: 0.4, ease: 'power3.in' });
     }
+  }, [isCartOpen]);
+
+  // Focus trap when cart is open
+  useEffect(() => {
+    if (!isCartOpen || !drawerRef.current) return;
+    
+    const focusableElements = drawerRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex="0"]'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    
+    if (firstElement) {
+      // Small timeout to wait for slide transition
+      setTimeout(() => firstElement.focus(), 100);
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isCartOpen]);
 
   const getItemTotal = (item) => {
@@ -72,7 +109,7 @@ export default function CartDrawer() {
       >
         {/* Header */}
         <div className="cart-drawer-header">
-          <h2 className="cart-drawer-title">Your Order</h2>
+          <h2 className="cart-drawer-title">{t('cart.title')}</h2>
           <button className="cart-drawer-close" onClick={() => setIsCartOpen(false)} aria-label="Close cart">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -83,10 +120,18 @@ export default function CartDrawer() {
         {items.length === 0 ? (
           <div className="cart-empty">
             <div className="cart-empty-icon">🧺</div>
-            <p className="cart-empty-title">Your cart is empty</p>
-            <p className="cart-empty-subtitle">Add items from a restaurant to get started</p>
+            <p className="cart-empty-title">{t('cart.empty')}</p>
+            <p className="cart-empty-subtitle">
+              {language === 'am'
+                ? 'ለመጀመር ከሬስቶራንት ምግብ ይጨምሩ'
+                : language === 'ti'
+                ? 'ንምጅማር ካብ ቤት-መግቢ መግቢ ወስኹ'
+                : language === 'om'
+                ? 'Nyaata galchuun jalqabaa'
+                : 'Add items from a restaurant to get started'}
+            </p>
             <Link href="/discover" className="shiny-btn-mini" onClick={() => setIsCartOpen(false)}>
-              Browse Restaurants
+              {t('navbar.exploreRestaurants')}
             </Link>
           </div>
         ) : (
@@ -135,23 +180,60 @@ export default function CartDrawer() {
                 className="cart-add-more"
                 onClick={() => setIsCartOpen(false)}
               >
-                + Add more items
+                {language === 'am'
+                  ? '+ ተጨማሪ ምግቦችን ይጨምሩ'
+                  : language === 'ti'
+                  ? '+ ተወሳኺ መግቢ ወስኹ'
+                  : language === 'om'
+                  ? '+ Nyaata Dabalataa'
+                  : '+ Add more items'}
               </Link>
             )}
 
             {/* Totals */}
             <div className="cart-totals">
               <div className="cart-total-row">
-                <span>Subtotal</span><span>AED {subtotal}</span>
+                <span>{t('cart.subtotal')}</span><span>AED {subtotal}</span>
               </div>
               <div className="cart-total-row">
-                <span>Delivery Fee</span><span>{deliveryFee === 0 ? 'Free' : `AED ${deliveryFee}`}</span>
+                <span>
+                  {language === 'am'
+                    ? 'የማድረሻ ዋጋ'
+                    : language === 'ti'
+                    ? 'ናይ ምብጻሕ ዋጋ'
+                    : language === 'om'
+                    ? 'Kaffaltii Dhiheessii'
+                    : 'Delivery Fee'}
+                </span>
+                <span>
+                  {deliveryFee === 0
+                    ? (language === 'am' ? 'ነጻ' : language === 'ti' ? 'ነጻ' : language === 'om' ? 'Bilisa' : 'Free')
+                    : `AED ${deliveryFee}`}
+                </span>
               </div>
               <div className="cart-total-row">
-                <span>Service Fee</span><span>AED {serviceFee}</span>
+                <span>
+                  {language === 'am'
+                    ? 'የአገልግሎት ክፍያ'
+                    : language === 'ti'
+                    ? 'ናይ ኣገልግሎት ክፍሊት'
+                    : language === 'om'
+                    ? 'Kaffaltii Tajaajilaa'
+                    : 'Service Fee'}
+                </span>
+                <span>AED {serviceFee}</span>
               </div>
               <div className="cart-total-row cart-total-final">
-                <span>Total</span><span>AED {total}</span>
+                <span>
+                  {language === 'am'
+                    ? 'ድምር'
+                    : language === 'ti'
+                    ? 'ጠቕላላ'
+                    : language === 'om'
+                    ? 'Ida\'ama'
+                    : 'Total'}
+                </span>
+                <span>AED {total}</span>
               </div>
             </div>
 
@@ -162,7 +244,7 @@ export default function CartDrawer() {
                 className="shiny-btn cart-checkout-btn"
                 onClick={() => setIsCartOpen(false)}
               >
-                Proceed to Checkout
+                {t('cart.checkout')}
                 <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>

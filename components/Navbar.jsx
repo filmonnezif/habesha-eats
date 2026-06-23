@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { gsap } from 'gsap';
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
  * Navbar with transparent-to-glass transition on scroll.
@@ -13,6 +14,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const overlayRef = useRef(null);
   const menuLinksRef = useRef(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,20 +75,20 @@ export default function Navbar() {
               <img src="/logo.png" alt="Habesha Eats" width="42" height="42" style={{ objectFit: 'contain', padding: '2px' }} />
             </span>
             <span className="navbar-wordmark">
-              HABESHA <span className="navbar-wordmark-accent">EATS</span>
+              {t('hero.habesha')} <span className="navbar-wordmark-accent">{t('hero.eats')}</span>
             </span>
           </a>
 
           {/* Desktop Navigation Links */}
           <div className="navbar-links">
-            <a href="#restaurants" className="navbar-link">Restaurants</a>
-            <a href="#about" className="navbar-link">About</a>
-            <a href="#contact" className="navbar-link">Contact</a>
+            <a href="#restaurants" className="navbar-link">{t('navbar.restaurants')}</a>
+            <a href="#about" className="navbar-link">{t('navbar.about')}</a>
+            <a href="#contact" className="navbar-link">{t('navbar.contact')}</a>
           </div>
 
           {/* Desktop CTA */}
           <a href="/discover" className="navbar-cta shiny-btn-mini navbar-cta-desktop">
-            Discover Now
+            {t('navbar.discoverNow')}
           </a>
 
           {/* Hamburger Button (Mobile) */}
@@ -110,12 +112,12 @@ export default function Navbar() {
         style={{ clipPath: 'circle(0% at calc(100% - 3rem) 2.5rem)' }}
       >
         <div ref={menuLinksRef} className="mobile-menu-content">
-          <a href="#how-it-works" className="mobile-menu-link" onClick={handleLinkClick}>How It Works</a>
-          <a href="#restaurants" className="mobile-menu-link" onClick={handleLinkClick}>Restaurants</a>
-          <a href="#about" className="mobile-menu-link" onClick={handleLinkClick}>About</a>
-          <a href="#contact" className="mobile-menu-link" onClick={handleLinkClick}>Contact</a>
+          <a href="#how-it-works" className="mobile-menu-link" onClick={handleLinkClick}>{t('navbar.howItWorks')}</a>
+          <a href="#restaurants" className="mobile-menu-link" onClick={handleLinkClick}>{t('navbar.restaurants')}</a>
+          <a href="#about" className="mobile-menu-link" onClick={handleLinkClick}>{t('navbar.about')}</a>
+          <a href="#contact" className="mobile-menu-link" onClick={handleLinkClick}>{t('navbar.contact')}</a>
           <a href="/discover" className="mobile-menu-cta shiny-btn" onClick={handleLinkClick}>
-            Discover Now
+            {t('navbar.discoverNow')}
             <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
@@ -125,3 +127,4 @@ export default function Navbar() {
     </>
   );
 }
+

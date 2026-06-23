@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import FloatingBeans from './FloatingBeans';
+import { useLanguage } from '@/lib/LanguageContext';
 
 /**
  * FinalCTA — Bold full-width call-to-action section before the footer.
  * Includes the main conversion CTA and a secondary partner CTA.
  */
 export default function FinalCTA() {
+  const { t } = useLanguage();
   const sectionRef = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -75,16 +77,15 @@ export default function FinalCTA() {
 
       <div className="final-cta-inner">
         <h2 className="final-cta-title" style={{ opacity: 0 }}>
-          Ready to Discover Your Next{' '}
-          <span className="final-cta-highlight">Favorite Meal</span>?
+          {t('finalCta.title')}
         </h2>
 
         <p className="final-cta-subtitle" style={{ opacity: 0 }}>
-          Browse 50+ Habesha restaurants across 7 emirates. Compare menus, read reviews, and order — all in one place.
+          {t('finalCta.subtitle')}
         </p>
 
         <a href="/discover" className="shiny-btn final-cta-btn" style={{ opacity: 0 }}>
-          Explore Restaurants
+          {t('navbar.exploreRestaurants')}
           <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
@@ -92,8 +93,8 @@ export default function FinalCTA() {
 
         <div className="partner-cta" style={{ opacity: 0 }}>
           <p className="partner-cta-text">
-            Own a Habesha restaurant?{' '}
-            <a href="#contact" className="partner-cta-link">Partner with us →</a>
+            {t('finalCta.partnerText')}{' '}
+            <a href="#contact" className="partner-cta-link">{t('finalCta.partnerLink')}</a>
           </p>
         </div>
       </div>

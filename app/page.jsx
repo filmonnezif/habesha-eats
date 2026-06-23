@@ -2,7 +2,6 @@ import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import HowItWorks from '@/components/HowItWorks';
 import StatsSection from '@/components/StatsSection';
-import PopularDishes from '@/components/PopularDishes';
 import TasteOfHome from '@/components/TasteOfHome';
 import Testimonials from '@/components/Testimonials';
 import FinalCTA from '@/components/FinalCTA';
@@ -16,7 +15,6 @@ export default function Home() {
       <HeroSection />
       <HowItWorks />
       <StatsSection />
-      <PopularDishes />
       <TasteOfHome />
       <Testimonials />
       <FinalCTA />

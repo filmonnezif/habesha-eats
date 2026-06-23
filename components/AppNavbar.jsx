@@ -4,10 +4,13 @@ import { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
+import { useLanguage } from '@/lib/LanguageContext';
+import { useRouter } from 'next/navigation';
+import { restaurants } from '@/lib/data';
 
 /**
  * AppNavbar — Always-visible navbar for app pages (Discover, Restaurant, etc.)
- * Features: Logo, Search bar, Cart icon with badge, Profile avatar.
+ * Features: Logo, Search bar with autocomplete suggestions, Cart icon with badge, Profile avatar.
  */
 export default function AppNavbar({ onSearchChange, searchValue = '' }) {
   const { totalItems, setIsCartOpen } = useCart();
@@ -16,6 +19,13 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
   const prevCount = useRef(totalItems);
   const overlayRef = useRef(null);
   const menuLinksRef = useRef(null);
+  const { t } = useLanguage();
+  const router = useRouter();
+
+  // Search autocomplete states
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchWrapperRef = useRef(null);
 
   // Animate badge on count change
   useEffect(() => {
@@ -43,6 +53,71 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
     }
   }, [menuOpen]);
 
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  // Compute dynamic autocomplete suggestions
+  useEffect(() => {
+    if (!searchValue.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    const query = searchValue.toLowerCase();
+    
+    // 1. Find matching restaurants
+    const matchedRestaurants = restaurants.filter(r => 
+      r.name.toLowerCase().includes(query) ||
+      r.cuisine.some(c => c.toLowerCase().includes(query)) ||
+      r.area.toLowerCase().includes(query)
+    ).map(r => ({
+      type: 'restaurant',
+      id: r.id,
+      name: r.name,
+      subtitle: `${r.cuisine.join(', ')} · ${r.area}`,
+      image: r.heroImage
+    }));
+
+    // 2. Find matching menu items (dishes)
+    const matchedDishes = [];
+    restaurants.forEach(r => {
+      r.menu.forEach(cat => {
+        cat.items.forEach(item => {
+          if (item.name.toLowerCase().includes(query) && !matchedDishes.some(d => d.name === item.name)) {
+            matchedDishes.push({
+              type: 'dish',
+              id: item.id,
+              name: item.name,
+              subtitle: `Signature dish at ${r.name}`,
+              restaurantId: r.id,
+              image: item.image
+            });
+          }
+        });
+      });
+    });
+
+    setSuggestions([...matchedRestaurants.slice(0, 3), ...matchedDishes.slice(0, 4)]);
+  }, [searchValue]);
+
+  const handleSuggestionClick = (sug) => {
+    if (sug.type === 'restaurant') {
+      router.push(`/restaurant/${sug.id}`);
+    } else if (sug.type === 'dish') {
+      router.push(`/restaurant/${sug.restaurantId}`);
+    }
+    setShowSuggestions(false);
+    onSearchChange?.('');
+  };
+
   return (
     <>
       <nav className="app-navbar" id="app-navbar">
@@ -53,12 +128,12 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
               <img src="/logo.png" alt="Habesha Eats" width="38" height="38" style={{ objectFit: 'contain', padding: '2px' }} />
             </span>
             <span className="navbar-wordmark">
-              HABESHA <span className="navbar-wordmark-accent">EATS</span>
+              {t('hero.habesha')} <span className="navbar-wordmark-accent">{t('hero.eats')}</span>
             </span>
           </Link>
 
-          {/* Search Bar — desktop */}
-          <div className="app-search-bar-wrapper">
+          {/* Search Bar with Autocomplete dropdown wrapper */}
+          <div ref={searchWrapperRef} className="app-search-bar-wrapper">
             <svg className="app-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <path d="M21 21l-4.35-4.35" />
@@ -66,19 +141,55 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
             <input
               type="text"
               className="app-search-input"
-              placeholder="Search restaurants, dishes, or cuisines..."
+              placeholder={t('discover.searchPlaceholder')}
               value={searchValue}
-              onChange={(e) => onSearchChange?.(e.target.value)}
+              onChange={(e) => {
+                onSearchChange?.(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
               id="app-search-input"
+              autoComplete="off"
             />
             {searchValue && (
               <button
                 className="app-search-clear"
-                onClick={() => onSearchChange?.('')}
+                onClick={() => {
+                  onSearchChange?.('');
+                  setSuggestions([]);
+                }}
                 aria-label="Clear search"
               >
                 ×
               </button>
+            )}
+
+            {/* Autocomplete Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="app-search-suggestions">
+                {suggestions.map((sug, idx) => (
+                  <div
+                    key={`${sug.type}-${sug.id || idx}`}
+                    className="app-search-suggestion-item"
+                    onClick={() => handleSuggestionClick(sug)}
+                  >
+                    {sug.image ? (
+                      <img src={sug.image} alt={sug.name} className="app-search-suggestion-img" />
+                    ) : (
+                      <div className="app-search-suggestion-icon">
+                        {sug.type === 'restaurant' ? '🏪' : '🍛'}
+                      </div>
+                    )}
+                    <div className="app-search-suggestion-text">
+                      <span className="app-search-suggestion-title">{sug.name}</span>
+                      <span className="app-search-suggestion-subtitle">{sug.subtitle}</span>
+                    </div>
+                    <span className="app-search-suggestion-badge">
+                      {sug.type}
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
@@ -126,15 +237,15 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
       {/* Mobile Menu Overlay */}
       <div ref={overlayRef} className="mobile-menu-overlay" style={{ clipPath: 'circle(0% at calc(100% - 3rem) 2.5rem)' }}>
         <div ref={menuLinksRef} className="mobile-menu-content">
-          <Link href="/discover" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>Discover</Link>
-          <Link href="/profile" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>Profile</Link>
-          <Link href="/" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>Home</Link>
+          <Link href="/discover" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>{t('navbar.discoverNow')}</Link>
+          <Link href="/profile" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>{t('navbar.profile')}</Link>
+          <Link href="/" className="mobile-menu-link" onClick={() => setMenuOpen(false)}>{t('navbar.home')}</Link>
           <button
             className="mobile-menu-link"
             onClick={() => { setMenuOpen(false); setIsCartOpen(true); }}
             style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit' }}
           >
-            Cart {totalItems > 0 && `(${totalItems})`}
+            {t('navbar.cart')} {totalItems > 0 && `(${totalItems})`}
           </button>
         </div>
       </div>

@@ -1,22 +1,88 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { gsap } from 'gsap';
 import AppNavbar from '@/components/AppNavbar';
 import CartDrawer from '@/components/CartDrawer';
 import RestaurantCard from '@/components/RestaurantCard';
 import { useCart } from '@/lib/CartContext';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/LanguageContext';
 import {
   restaurants,
   EMIRATES,
   CUISINES,
   SORT_OPTIONS,
   DISH_CATEGORIES,
-  getDishesByCategory,
 } from '@/lib/data';
 
+function CustomDropdown({ value, onChange, options, ariaLabel, showLocationPin = false }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  const selectedOpt = options.find(opt => opt.value === value);
+
+  return (
+    <div ref={dropdownRef} className="custom-dropdown">
+      <button
+        type="button"
+        className="custom-dropdown-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={ariaLabel}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          {showLocationPin && <span style={{ opacity: 0.95, fontSize: '0.95rem' }}>📍</span>}
+          <span>{selectedOpt ? selectedOpt.label : value}</span>
+        </span>
+        <svg
+          className="custom-dropdown-chevron"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <ul role="listbox" className="custom-dropdown-menu">
+          {options.map((opt) => (
+            <li
+              key={opt.value}
+              role="option"
+              aria-selected={opt.value === value}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`custom-dropdown-option ${opt.value === value ? 'selected' : ''}`}
+            >
+              {opt.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function DiscoverContent() {
+  const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   
   // State variables
@@ -24,17 +90,18 @@ function DiscoverContent() {
   const [selectedEmirate, setSelectedEmirate] = useState('All Emirates');
   const [selectedCuisine, setSelectedCuisine] = useState('All');
   const [selectedDietary, setSelectedDietary] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(null);
   const [sortBy, setSortBy] = useState('recommended');
-  const [showMap, setShowMap] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [animatedCount, setAnimatedCount] = useState(0);
   
   const { totalItems, subtotal, restaurantName } = useCart();
 
-  // Initialize search query from URL if present
+  // Initialize search query and emirate filter from URL if present
   useEffect(() => {
     const q = searchParams.get('q');
     if (q) setSearchTerm(q);
+    const emirate = searchParams.get('emirate');
+    if (emirate) setSelectedEmirate(emirate);
     
     // Simulate loading animation for rich premium feel
     const timer = setTimeout(() => {
@@ -42,15 +109,6 @@ function DiscoverContent() {
     }, 800);
     return () => clearTimeout(timer);
   }, [searchParams]);
-
-  // Handle category pill click
-  const handleCategoryClick = (categoryKey) => {
-    if (activeCategory === categoryKey) {
-      setActiveCategory(null);
-    } else {
-      setActiveCategory(categoryKey);
-    }
-  };
 
   // Toggle dietary filters
   const toggleDietary = (diet) => {
@@ -61,7 +119,7 @@ function DiscoverContent() {
 
   // Process data (Filter + Sort)
   const filteredRestaurants = restaurants.filter((restaurant) => {
-    // 1. Search Query Match (checks restaurant name, tagline, description, area, tags)
+    // 1. Search Query Match
     if (searchTerm) {
       const query = searchTerm.toLowerCase();
       const matchName = restaurant.name.toLowerCase().includes(query);
@@ -70,7 +128,6 @@ function DiscoverContent() {
       const matchArea = restaurant.area.toLowerCase().includes(query);
       const matchTags = restaurant.tags.some((t) => t.toLowerCase().includes(query));
       
-      // Also match if restaurant contains a dish matching the search term
       const matchDishes = restaurant.menu.some((cat) =>
         cat.items.some(
           (item) =>
@@ -102,24 +159,14 @@ function DiscoverContent() {
     if (selectedDietary.length > 0) {
       const hasAllDietary = selectedDietary.every((diet) => {
         const dietLower = diet.toLowerCase();
-        // Check amenities or tags
         const matchAmenity = restaurant.amenities.includes(dietLower);
         const matchTag = restaurant.tags.some((t) => t.toLowerCase().includes(dietLower));
-        // Or check menu items for vegan/vegetarian tags
         const matchMenuItems = restaurant.menu.some((cat) =>
           cat.items.some((item) => item.tags.includes(dietLower))
         );
         return matchAmenity || matchTag || matchMenuItems;
       });
       if (!hasAllDietary) return false;
-    }
-
-    // 5. Active Category Match (e.g. clicks Shiro, checks if restaurant sells Shiro)
-    if (activeCategory) {
-      const hasCategoryItem = restaurant.menu.some((cat) =>
-        cat.items.some((item) => item.dishCategory === activeCategory)
-      );
-      if (!hasCategoryItem) return false;
     }
 
     return true;
@@ -137,58 +184,78 @@ function DiscoverContent() {
       return b.priceRange.length - a.priceRange.length;
     }
     if (sortBy === 'newest') {
-      // Hardcoded sort order as placeholder
       return b.reviewCount - a.reviewCount;
     }
-    // Recommended (default)
     return b.rating * b.reviewCount - a.rating * a.reviewCount;
   });
+
+  // Stagger entry effect with GSAP
+  useEffect(() => {
+    if (!isLoading) {
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          '.rc-card',
+          { opacity: 0, y: 30, scale: 0.96 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.55,
+            stagger: 0.06,
+            ease: 'power3.out',
+            clearProps: 'transform,opacity',
+          }
+        );
+      });
+      return () => ctx.revert();
+    }
+  }, [isLoading, sortedRestaurants.length, selectedEmirate, selectedCuisine, selectedDietary]);
+
+  // Results count-up animation
+  useEffect(() => {
+    if (!isLoading) {
+      const target = { val: animatedCount };
+      gsap.to(target, {
+        val: sortedRestaurants.length,
+        duration: 0.4,
+        ease: 'power1.out',
+        onUpdate: () => {
+          setAnimatedCount(Math.floor(target.val));
+        }
+      });
+    }
+  }, [sortedRestaurants.length, isLoading]);
 
   return (
     <div className="discover-page">
       <AppNavbar onSearchChange={setSearchTerm} searchValue={searchTerm} />
       <CartDrawer />
 
-      {/* Hero Header */}
-      <header className="discover-hero">
-        {/* Decorative background glow */}
-        <div className="bg-glow bg-glow-green" aria-hidden="true" />
-        <div className="bg-glow bg-glow-gold" style={{ top: '30%', right: '10%', opacity: 0.1 }} aria-hidden="true" />
+      {/* Sticky Filters & Controls (Compressed Design) */}
+      <section className="discover-controls" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '1rem', paddingBottom: '1rem' }}>
+        <div className="discover-controls-inner" style={{ padding: '0.6rem 2rem' }}>
+          {/* Emirate Dropdown Filter (Outside overflow-x container) */}
+          <CustomDropdown
+            value={selectedEmirate}
+            onChange={setSelectedEmirate}
+            options={EMIRATES.map((e) => ({
+              value: e,
+              label: e === 'All Emirates' ? t('discover.allEmirates') : e
+            }))}
+            ariaLabel="Filter by Emirate"
+            showLocationPin={true}
+          />
 
-        <h1 className="discover-hero-title">
-          Discover <span className="highlight-gradient">Authentic Flavors</span>
-        </h1>
-        <p className="discover-hero-subtitle">
-          Compare the finest Ethiopian & Eritrean kitchens, coffee ceremonies, and traditional Mesob dining across the Emirates.
-        </p>
-      </header>
-
-      {/* Sticky Filters & Controls */}
-      <section className="discover-controls">
-        <div className="discover-controls-inner">
-          <div className="discover-filters">
-            {/* Emirate Dropdown Filter */}
-            <select
-              value={selectedEmirate}
-              onChange={(e) => setSelectedEmirate(e.target.value)}
-              className="discover-sort-select"
-              style={{ paddingRight: '2rem' }}
-            >
-              {EMIRATES.map((e) => (
-                <option key={e} value={e} style={{ background: 'var(--color-surface-elevated)', color: 'var(--color-text-primary)' }}>
-                  {e}
-                </option>
-              ))}
-            </select>
-
+          <div className="discover-filters" style={{ gap: '0.6rem', flex: 1, minWidth: 0 }}>
             {/* Cuisine Filter Pills */}
             {CUISINES.map((c) => (
               <button
                 key={c}
                 onClick={() => setSelectedCuisine(c)}
                 className={`filter-pill ${selectedCuisine === c ? 'filter-pill-active' : ''}`}
+                aria-pressed={selectedCuisine === c}
               >
-                {c === 'All' ? 'All Cuisines' : `${c} Cuisines`}
+                {c === 'All' ? t('discover.allCuisines') : c === 'Ethiopian' ? t('discover.cuisineEth') : c === 'Eritrean' ? t('discover.cuisineEri') : c}
               </button>
             ))}
 
@@ -196,59 +263,51 @@ function DiscoverContent() {
             <button
               onClick={() => toggleDietary('Vegetarian')}
               className={`filter-pill ${selectedDietary.includes('Vegetarian') ? 'filter-pill-active' : ''}`}
+              aria-pressed={selectedDietary.includes('Vegetarian')}
             >
-              🥗 Vegetarian
+              {t('discover.vegetarian')}
             </button>
 
             {/* Vegan Filter Pill */}
             <button
               onClick={() => toggleDietary('Vegan')}
               className={`filter-pill ${selectedDietary.includes('Vegan') ? 'filter-pill-active' : ''}`}
+              aria-pressed={selectedDietary.includes('Vegan')}
             >
-              🌱 Vegan
+              {t('discover.vegan')}
             </button>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Map toggle */}
-            <button
-              onClick={() => setShowMap(!showMap)}
-              className="map-toggle-btn"
-              aria-label={showMap ? 'Show list grid' : 'Show map view'}
-            >
-              <span>{showMap ? '📋 List' : '📍 Map'}</span>
-            </button>
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             {/* Sort Dropdown */}
-            <select
+            <CustomDropdown
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="discover-sort-select"
-              id="sort-select"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} style={{ background: 'var(--color-surface-elevated)', color: 'var(--color-text-primary)' }}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              onChange={setSortBy}
+              options={SORT_OPTIONS.map((opt) => {
+                let label = opt.label;
+                if (opt.value === 'recommended') {
+                  label = language === 'am' ? 'የተመከሩ' : language === 'ti' ? 'ዝተመርጹ' : language === 'om' ? 'Kan Filatame' : opt.label;
+                } else if (opt.value === 'rating') {
+                  label = language === 'am' ? 'ደረጃ (ከፍተኛ)' : language === 'ti' ? 'ደረጃ (ለዓሊ)' : language === 'om' ? 'Sadarkaa' : opt.label;
+                } else if (opt.value === 'price-low') {
+                  label = language === 'am' ? 'ዋጋ (ከአነስተኛ)' : language === 'ti' ? 'ዋጋ (ካብ ትሑት)' : language === 'om' ? 'Gatii (Gadaanaa)' : opt.label;
+                } else if (opt.value === 'price-high') {
+                  label = language === 'am' ? 'ዋጋ (ከከፍተኛ)' : language === 'ti' ? 'ዋጋ (ካብ ልዑል)' : language === 'om' ? 'Gatii (Olaanaa)' : opt.label;
+                }
+                return { value: opt.value, label };
+              })}
+              ariaLabel="Sort restaurants"
+            />
           </div>
         </div>
       </section>
 
-      {/* Horizontal Food Categories Bar */}
-      <section className="categories-scroll">
-        {DISH_CATEGORIES.map((cat) => (
-          <button
-            key={cat.key}
-            onClick={() => handleCategoryClick(cat.key)}
-            className={`category-pill ${activeCategory === cat.key ? 'category-pill-active' : ''}`}
-          >
-            <span className="category-emoji">{cat.emoji}</span>
-            <span>{cat.label}</span>
-          </button>
-        ))}
-      </section>
+      {/* Results Count with Animated count-up */}
+      {!isLoading && (
+        <div className="discover-results-count">
+          Showing <span>{animatedCount}</span> restaurants matching your filters
+        </div>
+      )}
 
       {/* Content Area */}
       <main className="discover-container">
@@ -261,9 +320,9 @@ function DiscoverContent() {
         ) : sortedRestaurants.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🍲</div>
-            <h2 className="empty-title">No Restaurants Found</h2>
+            <h2 className="empty-title">{t('discover.emptyTitle')}</h2>
             <p className="empty-desc">
-              We couldn't find any kitchen matching your active filter criteria. Try adjusting your search query or removing filters.
+              {t('discover.emptyDesc')}
             </p>
             <button
               onClick={() => {
@@ -271,47 +330,18 @@ function DiscoverContent() {
                 setSelectedEmirate('All Emirates');
                 setSelectedCuisine('All');
                 setSelectedDietary([]);
-                setActiveCategory(null);
               }}
               className="shiny-btn-mini"
             >
-              Reset All Filters
+              {t('discover.resetFilters')}
             </button>
           </div>
-        ) : showMap ? (
-          <div className="discover-split-view">
-            <div className="discover-grid" style={{ gridTemplateColumns: '1fr' }}>
-              {sortedRestaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-              ))}
-            </div>
-            {/* Interactive Dark Map Container (Mocked for smooth performance) */}
-            <div className="discover-map-container">
-              <div style={{ position: 'absolute', inset: 0, background: 'var(--color-surface-elevated)', opacity: 0.9 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🗺️</div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--color-text-primary)' }}>
-                    Interactive Map
-                  </h3>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', maxWidth: '280px', margin: '0 auto' }}>
-                    Showing {sortedRestaurants.length} locations across the UAE. Map pins color-coded by culinary specialty.
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '1rem' }}>
-                    <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(52, 199, 89, 0.15)', color: 'var(--color-habesha-green)', border: '1px solid var(--color-habesha-green)' }}>
-                      Dubai ({sortedRestaurants.filter(r => r.emirate === 'Dubai').length})
-                    </span>
-                    <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(252, 217, 0, 0.15)', color: 'var(--color-habesha-gold)', border: '1px solid var(--color-habesha-gold)' }}>
-                      Abu Dhabi ({sortedRestaurants.filter(r => r.emirate === 'Abu Dhabi').length})
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         ) : (
-          <div className="discover-grid">
-            {sortedRestaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+          <div className="discover-grid" id="discover-grid">
+            {sortedRestaurants.map((restaurant, idx) => (
+              <Suspense key={restaurant.id} fallback={<div className="skeleton-card" />}>
+                <RestaurantCard restaurant={restaurant} index={idx} />
+              </Suspense>
             ))}
           </div>
         )}
@@ -319,12 +349,12 @@ function DiscoverContent() {
 
       {/* Sticky Bottom Cart Bar */}
       {totalItems > 0 && (
-        <div className="sticky-order-bar">
+        <div className="sticky-order-bar" id="sticky-order-bar">
           <div className="sticky-order-info">
-            <span>🛒 {totalItems} {totalItems === 1 ? 'item' : 'items'}</span>
+            <span>🛒 {totalItems} {totalItems === 1 ? t('discover.stickyItem') : t('discover.stickyItems')}</span>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
             <span style={{ color: 'var(--color-habesha-green)', fontWeight: 700 }}>AED {subtotal}</span>
-            <span className="sticky-order-restaurant">from {restaurantName}</span>
+            <span className="sticky-order-restaurant">{t('discover.stickyFrom')} {restaurantName}</span>
           </div>
           <button
             onClick={() => {
@@ -334,7 +364,7 @@ function DiscoverContent() {
             className="shiny-btn-mini"
             style={{ padding: '0.5rem 1.25rem' }}
           >
-            View Cart &rarr;
+            {t('discover.stickyViewCart')}
           </button>
         </div>
       )}
@@ -349,3 +379,4 @@ export default function DiscoverPage() {
     </Suspense>
   );
 }
+

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import FloatingBeans from './FloatingBeans';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const testimonials = [
   {
@@ -47,6 +48,7 @@ const testimonials = [
  * Testimonials — Auto-scrolling ticker of review cards with staggered reveal.
  */
 export default function Testimonials() {
+  const { t } = useLanguage();
   const sectionRef = useRef(null);
   const tickerRef = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -106,9 +108,9 @@ export default function Testimonials() {
       <FloatingBeans />
       <div className="testimonials-inner">
         <div className="testimonials-header">
-          <p className="testimonials-eyebrow" style={{ opacity: 0 }}>What People Say</p>
+          <p className="testimonials-eyebrow" style={{ opacity: 0 }}>{t('testimonials.eyebrow')}</p>
           <h2 className="testimonials-title" style={{ opacity: 0 }}>
-            Loved by the Community
+            {t('testimonials.title')}
           </h2>
         </div>
 
