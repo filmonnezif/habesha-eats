@@ -832,8 +832,8 @@ body::before {
   right: 0;
   margin: 0 auto;
   max-width: 450px;
-  text-align: left;
-  align-items: flex-start;
+  text-align: center;
+  align-items: center;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -852,7 +852,8 @@ body::before {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  text-align: left;
+  align-items: center;
+  text-align: center;
 }
 
 .hero-mini-tags {
@@ -976,9 +977,9 @@ body::before {
     left: 0;
     right: 0;
     margin: 0 auto;
-    text-align: left;
+    text-align: center;
     max-width: 90vw;
-    align-items: flex-start;
+    align-items: center;
   }
   .hero-desc-container {
     padding: 0.75rem 1.5rem;
