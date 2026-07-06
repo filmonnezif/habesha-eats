@@ -276,6 +276,7 @@ body::before {
   background-clip: text;
   transition: filter 0.3s ease;
   display: inline-block;
+  white-space: nowrap;
 }
 
 .navbar-brand:hover .navbar-wordmark {
