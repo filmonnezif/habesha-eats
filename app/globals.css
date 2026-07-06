@@ -1047,8 +1047,8 @@ body::before {
 
 .theme-toggle-btn {
   position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
+  top: 0.5rem;
+  right: 0.5rem;
   z-index: 9996;
   width: 46px;
   height: 46px;
@@ -1354,8 +1354,8 @@ html[lang="ti"] h1, html[lang="ti"] h2, html[lang="ti"] h3, html[lang="ti"] h4 {
 
 .lang-switcher-wrapper {
   position: fixed;
-  top: 1.25rem;
-  right: 4.75rem; /* Placed exactly beside the theme toggle button */
+  top: 0.5rem;
+  right: 3.25rem; /* Placed exactly beside the theme toggle button */
   z-index: 9996;
 }
 
@@ -1514,18 +1514,6 @@ body:has(.app-navbar) .lang-switcher-wrapper {
 
 /* Adjust language switcher position on mobile viewports */
 @media (max-width: 767px) {
-  .theme-toggle-btn {
-    top: 0.5rem;
-    bottom: auto;
-    left: auto;
-    right: 0.5rem;
-  }
-  .lang-switcher-wrapper {
-    top: 0.5rem;
-    bottom: auto;
-    left: auto;
-    right: 3.5rem;
-  }
   .lang-dropdown-menu {
     bottom: auto;
     top: 120%;
@@ -1536,19 +1524,9 @@ body:has(.app-navbar) .lang-switcher-wrapper {
   .theme-toggle-btn {
     width: 40px;
     height: 40px;
-    top: 0.5rem;
-    bottom: auto;
-    left: auto;
-    right: 0.5rem;
   }
   .lang-toggle-btn {
     width: 40px;
     height: 40px;
-  }
-  .lang-switcher-wrapper {
-    top: 0.5rem;
-    bottom: auto;
-    left: auto;
-    right: 3.25rem;
   }
 }
