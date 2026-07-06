@@ -276,10 +276,6 @@ body::before {
   background-clip: text;
   transition: filter 0.3s ease;
   display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
 }
 
 .navbar-brand:hover .navbar-wordmark {
@@ -593,7 +589,6 @@ body::before {
 
   .navbar-wordmark {
     font-size: 1.2rem;
-    max-width: 150px;
   }
 }
 
