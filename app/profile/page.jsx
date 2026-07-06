@@ -330,7 +330,7 @@ export default function ProfilePage() {
                   <h4 style={{ fontSize: '0.9375rem', fontWeight: 700, margin: '0 0 0.15rem 0' }}>Home</h4>
                   <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Apartment 402, Marina Heights, Dubai Marina, Dubai</p>
                 </div>
-                <button style={{ background: 'none', border: 'none', color: 'var(--color-habesha-gold)', fontSize: '0.8125rem', fontWeight: 700, cursor: 'pointer' }}>Edit</button>
+                <button onClick={() => alert('Address editing is currently a simulated feature for this UI demonstration.')} style={{ background: 'none', border: 'none', color: 'var(--color-habesha-gold)', fontSize: '0.8125rem', fontWeight: 700, cursor: 'pointer' }}>Edit</button>
               </div>
             </div>
 
