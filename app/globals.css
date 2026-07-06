@@ -827,7 +827,7 @@ body::before {
 
 .hero-bottom-left-content {
   position: absolute;
-  top: calc(50% + 1.25em + 2rem); /* Directly beneath the clustered Habesha Eats text */
+  top: calc(50% + 7rem); /* Push down enough to clear the headline text */
   left: 0;
   right: 0;
   margin: 0 auto;
@@ -972,7 +972,7 @@ body::before {
     display: none;
   }
   .hero-bottom-left-content {
-    top: calc(50% + 1.25em + 1.5rem);
+    top: calc(50% + 5.5rem);
     bottom: auto;
     left: 0;
     right: 0;
