@@ -1259,12 +1259,12 @@ html, body,
 [data-theme="light"] .hero-title-bottom,
 [data-theme="light"] .hero-title-symmetrical-left,
 [data-theme="light"] .hero-title-symmetrical-right {
-  color: #0a0a0a;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
 }
 
 [data-theme="light"] .hero-subhead {
-  color: #0f0f0f;
+  color: #ffffff;
 }
 
 [data-theme="light"] .hero-desc {
