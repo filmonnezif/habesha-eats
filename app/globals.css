@@ -718,7 +718,7 @@ body::before {
   text-align: center;
   line-height: 0.9;
   letter-spacing: -0.04em;
-  margin-top: -0.6em; /* Position it exactly above center with breathing room */
+  margin-top: -0.75em; /* Position it exactly above center with breathing room */
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
@@ -734,7 +734,7 @@ body::before {
   text-align: center;
   line-height: 0.9;
   letter-spacing: -0.04em;
-  margin-top: 0.6em; /* Position it exactly below center with breathing room */
+  margin-top: 0.75em; /* Position it exactly below center with breathing room */
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
@@ -925,7 +925,7 @@ body::before {
 /* Adjust layout on mobile devices */
 @media (max-width: 767px) {
   .hero-title-top {
-    margin-top: -0.6em;
+    margin-top: -0.75em;
   }
   .hero-title-middle-spacer {
     display: none;
