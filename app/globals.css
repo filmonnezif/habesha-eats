@@ -1515,16 +1515,16 @@ body:has(.app-navbar) .lang-switcher-wrapper {
 /* Adjust language switcher position on mobile viewports */
 @media (max-width: 767px) {
   .theme-toggle-btn {
-    top: 1rem;
+    top: 0.5rem;
     bottom: auto;
     left: auto;
-    right: 4.5rem;
+    right: 0.5rem;
   }
   .lang-switcher-wrapper {
-    top: 1rem;
+    top: 0.5rem;
     bottom: auto;
     left: auto;
-    right: 7.5rem;
+    right: 3.5rem;
   }
   .lang-dropdown-menu {
     bottom: auto;
@@ -1536,19 +1536,19 @@ body:has(.app-navbar) .lang-switcher-wrapper {
   .theme-toggle-btn {
     width: 40px;
     height: 40px;
-    top: 1rem;
+    top: 0.5rem;
     bottom: auto;
     left: auto;
-    right: 3.5rem;
+    right: 0.5rem;
   }
   .lang-toggle-btn {
     width: 40px;
     height: 40px;
   }
   .lang-switcher-wrapper {
-    top: 1rem;
+    top: 0.5rem;
     bottom: auto;
     left: auto;
-    right: 6.25rem;
+    right: 3.25rem;
   }
 }
