@@ -1087,7 +1087,7 @@
   }
   .app-search-bar-wrapper {
     margin: 0 0.5rem;
-    max-width: none;
+    max-width: 180px;
   }
   .app-navbar-actions {
     gap: 0.5rem;
@@ -1149,6 +1149,7 @@
   }
   .app-search-bar-wrapper {
     margin: 0 0.35rem;
+    max-width: 130px;
   }
   .app-search-input {
     padding: 0.6rem 0.75rem 0.6rem 2.5rem;

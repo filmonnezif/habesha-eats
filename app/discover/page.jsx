@@ -247,17 +247,16 @@ function DiscoverContent() {
           />
 
           <div className="discover-filters" style={{ gap: '0.6rem', flex: 1, minWidth: 0 }}>
-            {/* Cuisine Filter Pills */}
-            {CUISINES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setSelectedCuisine(c)}
-                className={`filter-pill ${selectedCuisine === c ? 'filter-pill-active' : ''}`}
-                aria-pressed={selectedCuisine === c}
-              >
-                {c === 'All' ? t('discover.allCuisines') : c === 'Ethiopian' ? t('discover.cuisineEth') : c === 'Eritrean' ? t('discover.cuisineEri') : c}
-              </button>
-            ))}
+            {/* Cuisine Dropdown Filter */}
+            <CustomDropdown
+              value={selectedCuisine}
+              onChange={setSelectedCuisine}
+              options={CUISINES.map((c) => ({
+                value: c,
+                label: c === 'All' ? t('discover.allCuisines') : c === 'Ethiopian' ? t('discover.cuisineEth') : c === 'Eritrean' ? t('discover.cuisineEri') : c
+              }))}
+              ariaLabel="Filter by Cuisine"
+            />
 
             {/* Vegetarian Filter Pill */}
             <button
