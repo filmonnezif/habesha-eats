@@ -1086,15 +1086,12 @@
     height: 70px;
   }
   .app-search-bar-wrapper {
-    margin: 0 0.5rem;
+    margin: 0 0.25rem;
     flex: 0 1 auto;
-    width: 200px;
+    width: 140px;
   }
   .app-navbar-actions {
     gap: 0.5rem;
-  }
-  .app-navbar-actions #profile-btn {
-    display: none;
   }
   .discover-controls {
     top: 70px;

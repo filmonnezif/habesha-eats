@@ -24,6 +24,15 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize(); // initialize
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Search autocomplete states
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -143,7 +152,7 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
             <input
               type="text"
               className="app-search-input"
-              placeholder={t('discover.searchPlaceholder')}
+              placeholder={isMobile ? 'Search' : t('navbar.findNearYou')}
               value={searchValue}
               onChange={(e) => {
                 onSearchChange?.(e.target.value);
