@@ -917,7 +917,7 @@ body::before {
 /* Adjust layout on mobile devices */
 @media (max-width: 767px) {
   .hero-title-top {
-    margin-top: -8vh;
+    margin-top: -15vh;
   }
   .hero-title-middle-spacer {
     height: 32vh;
@@ -946,7 +946,7 @@ body::before {
     display: none;
   }
   .hero-bottom-left-content {
-    bottom: 3vh;
+    bottom: 12vh;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
@@ -991,11 +991,11 @@ body::before {
     right: 4vw;
   }
   .hero-bottom-left-content {
-    bottom: 4vh;
+    bottom: 15vh;
   }
   .hero-subhead {
     font-size: clamp(1rem, 4vw, 1.25rem);
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -1510,20 +1510,20 @@ html[lang="ti"] h1, html[lang="ti"] h2, html[lang="ti"] h3, html[lang="ti"] h4 {
 /* Adjust language switcher position on mobile viewports */
 @media (max-width: 767px) {
   .theme-toggle-btn {
-    top: auto;
-    bottom: 2rem;
-    left: 1rem;
-    right: auto;
+    top: 1rem;
+    bottom: auto;
+    left: auto;
+    right: 4.5rem;
   }
   .lang-switcher-wrapper {
-    top: auto;
-    bottom: 2rem;
-    left: 4.5rem;
-    right: auto;
+    top: 1rem;
+    bottom: auto;
+    left: auto;
+    right: 7.5rem;
   }
   .lang-dropdown-menu {
-    bottom: 120%;
-    top: auto;
+    bottom: auto;
+    top: 120%;
   }
 }
 
@@ -1531,19 +1531,19 @@ html[lang="ti"] h1, html[lang="ti"] h2, html[lang="ti"] h3, html[lang="ti"] h4 {
   .theme-toggle-btn {
     width: 40px;
     height: 40px;
-    top: auto;
-    bottom: 1rem;
-    left: 1rem;
-    right: auto;
+    top: 1rem;
+    bottom: auto;
+    left: auto;
+    right: 3.5rem;
   }
   .lang-toggle-btn {
     width: 40px;
     height: 40px;
   }
   .lang-switcher-wrapper {
-    top: auto;
-    bottom: 1rem;
-    left: 4rem;
-    right: auto;
+    top: 1rem;
+    bottom: auto;
+    left: auto;
+    right: 6.25rem;
   }
 }

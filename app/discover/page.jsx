@@ -89,7 +89,6 @@ function DiscoverContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmirate, setSelectedEmirate] = useState('All Emirates');
   const [selectedCuisine, setSelectedCuisine] = useState('All');
-  const [selectedDietary, setSelectedDietary] = useState([]);
   const [sortBy, setSortBy] = useState('recommended');
   const [isLoading, setIsLoading] = useState(true);
   const [animatedCount, setAnimatedCount] = useState(0);
@@ -109,13 +108,6 @@ function DiscoverContent() {
     }, 800);
     return () => clearTimeout(timer);
   }, [searchParams]);
-
-  // Toggle dietary filters
-  const toggleDietary = (diet) => {
-    setSelectedDietary((prev) =>
-      prev.includes(diet) ? prev.filter((d) => d !== diet) : [...prev, diet]
-    );
-  };
 
   // Process data (Filter + Sort)
   const filteredRestaurants = restaurants.filter((restaurant) => {
@@ -148,25 +140,21 @@ function DiscoverContent() {
       }
     }
 
-    // 3. Cuisine Filter Match
+    // 3. Cuisine / Dietary Filter Match
     if (selectedCuisine !== 'All') {
-      if (!restaurant.cuisine.some((c) => c.toLowerCase() === selectedCuisine.toLowerCase())) {
-        return false;
-      }
-    }
-
-    // 4. Dietary Filter Match
-    if (selectedDietary.length > 0) {
-      const hasAllDietary = selectedDietary.every((diet) => {
-        const dietLower = diet.toLowerCase();
+      if (selectedCuisine === 'Vegetarian' || selectedCuisine === 'Vegan') {
+        const dietLower = selectedCuisine.toLowerCase();
         const matchAmenity = restaurant.amenities.includes(dietLower);
         const matchTag = restaurant.tags.some((t) => t.toLowerCase().includes(dietLower));
         const matchMenuItems = restaurant.menu.some((cat) =>
           cat.items.some((item) => item.tags.includes(dietLower))
         );
-        return matchAmenity || matchTag || matchMenuItems;
-      });
-      if (!hasAllDietary) return false;
+        if (!matchAmenity && !matchTag && !matchMenuItems) return false;
+      } else {
+        if (!restaurant.cuisine.some((c) => c.toLowerCase() === selectedCuisine.toLowerCase())) {
+          return false;
+        }
+      }
     }
 
     return true;
@@ -209,7 +197,7 @@ function DiscoverContent() {
       });
       return () => ctx.revert();
     }
-  }, [isLoading, sortedRestaurants.length, selectedEmirate, selectedCuisine, selectedDietary]);
+  }, [isLoading, sortedRestaurants.length, selectedEmirate, selectedCuisine]);
 
   // Results count-up animation
   useEffect(() => {
@@ -251,30 +239,15 @@ function DiscoverContent() {
             <CustomDropdown
               value={selectedCuisine}
               onChange={setSelectedCuisine}
-              options={CUISINES.map((c) => ({
-                value: c,
-                label: c === 'All' ? t('discover.allCuisines') : c === 'Ethiopian' ? t('discover.cuisineEth') : c === 'Eritrean' ? t('discover.cuisineEri') : c
-              }))}
+              options={[
+                { value: 'All', label: t('discover.allCuisines') },
+                { value: 'Ethiopian', label: t('discover.cuisineEth') },
+                { value: 'Eritrean', label: t('discover.cuisineEri') },
+                { value: 'Vegetarian', label: t('discover.vegetarian') },
+                { value: 'Vegan', label: t('discover.vegan') }
+              ]}
               ariaLabel="Filter by Cuisine"
             />
-
-            {/* Vegetarian Filter Pill */}
-            <button
-              onClick={() => toggleDietary('Vegetarian')}
-              className={`filter-pill ${selectedDietary.includes('Vegetarian') ? 'filter-pill-active' : ''}`}
-              aria-pressed={selectedDietary.includes('Vegetarian')}
-            >
-              {t('discover.vegetarian')}
-            </button>
-
-            {/* Vegan Filter Pill */}
-            <button
-              onClick={() => toggleDietary('Vegan')}
-              className={`filter-pill ${selectedDietary.includes('Vegan') ? 'filter-pill-active' : ''}`}
-              aria-pressed={selectedDietary.includes('Vegan')}
-            >
-              {t('discover.vegan')}
-            </button>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
