@@ -946,7 +946,7 @@ body::before {
     display: none;
   }
   .hero-bottom-left-content {
-    bottom: 12vh;
+    bottom: 3vh;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
@@ -991,7 +991,7 @@ body::before {
     right: 4vw;
   }
   .hero-bottom-left-content {
-    bottom: 14vh;
+    bottom: 4vh;
   }
   .hero-subhead {
     font-size: clamp(1rem, 4vw, 1.25rem);

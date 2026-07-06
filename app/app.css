@@ -1099,7 +1099,14 @@
     top: 70px;
   }
   .discover-controls-inner {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .discover-filters {
+    order: 3;
+    width: 100%;
+    margin-top: 0.5rem;
   }
   .discover-hero {
     padding: 2.5rem 1rem;
@@ -1123,9 +1130,8 @@
   .discover-page {
     padding-top: 70px;
   }
-  .navbar-wordmark {
-    font-size: 1.15rem;
-    max-width: 130px;
+  .app-navbar .navbar-wordmark {
+    display: none;
   }
 }
 
