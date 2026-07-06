@@ -234,7 +234,21 @@ function DiscoverContent() {
             showLocationPin={true}
           />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          {/* Cuisine Dropdown Filter */}
+          <CustomDropdown
+            value={selectedCuisine}
+            onChange={setSelectedCuisine}
+            options={[
+              { value: 'All', label: t('discover.allCuisines') },
+              { value: 'Ethiopian', label: t('discover.cuisineEth') },
+              { value: 'Eritrean', label: t('discover.cuisineEri') },
+              { value: 'Vegetarian', label: t('discover.vegetarian') },
+              { value: 'Vegan', label: t('discover.vegan') }
+            ]}
+            ariaLabel="Filter by Cuisine"
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             {/* Sort Dropdown */}
             <CustomDropdown
               value={sortBy}
