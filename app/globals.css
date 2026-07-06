@@ -253,6 +253,7 @@ body::before {
   text-decoration: none;
   color: var(--color-text-primary);
   transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 
 .navbar-brand:hover {
@@ -277,6 +278,8 @@ body::before {
   transition: filter 0.3s ease;
   display: inline-block;
   white-space: nowrap;
+  flex-shrink: 0;
+  min-width: max-content;
 }
 
 .navbar-brand:hover .navbar-wordmark {
@@ -589,7 +592,13 @@ body::before {
   }
 
   .navbar-wordmark {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-wordmark {
+    font-size: 0.95rem;
   }
 }
 
