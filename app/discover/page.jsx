@@ -234,7 +234,6 @@ function DiscoverContent() {
             showLocationPin={true}
           />
 
-          <div className="discover-filters" style={{ gap: '0.6rem', flex: 1, minWidth: 0 }}>
             {/* Cuisine Dropdown Filter */}
             <CustomDropdown
               value={selectedCuisine}
@@ -248,7 +247,6 @@ function DiscoverContent() {
               ]}
               ariaLabel="Filter by Cuisine"
             />
-          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             {/* Sort Dropdown */}
