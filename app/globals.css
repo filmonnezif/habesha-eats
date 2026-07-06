@@ -1504,7 +1504,12 @@ html[lang="ti"] h1, html[lang="ti"] h2, html[lang="ti"] h3, html[lang="ti"] h4 {
 
 [data-theme="light"] .lang-option-active {
   background: var(--color-habesha-green) !important;
-  color: #ffffff !important;
+}
+
+/* Hide globally fixed theme/lang buttons on pages with app-navbar */
+body:has(.app-navbar) .theme-toggle-btn,
+body:has(.app-navbar) .lang-switcher-wrapper {
+  display: none !important;
 }
 
 /* Adjust language switcher position on mobile viewports */

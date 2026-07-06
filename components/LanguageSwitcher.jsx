@@ -5,7 +5,7 @@ import { Globe, ChevronDown } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useLanguage, LANGUAGES } from '@/lib/LanguageContext';
 
-export default function LanguageSwitcher() {
+export default function LanguageSwitcher({ variant = 'floating' }) {
   const { language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -72,17 +72,18 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <div className="lang-switcher-wrapper">
+    <div className={variant === 'navbar' ? 'lang-switcher-navbar' : 'lang-switcher-wrapper'} style={variant === 'navbar' ? { position: 'relative' } : {}}>
       <button
         ref={triggerRef}
         onClick={toggleDropdown}
-        className="lang-toggle-btn"
+        className={variant === 'navbar' ? 'app-nav-icon-btn' : 'lang-toggle-btn'}
         aria-label="Select Language"
         aria-expanded={isOpen}
         title="Select Language"
+        style={variant === 'navbar' ? { fontSize: '0.875rem', gap: '0.2rem' } : {}}
       >
         <Globe size={18} className="lang-globe-icon" />
-        <span className="lang-code-label">{activeLang.code.toUpperCase()}</span>
+        {variant !== 'navbar' && <span className="lang-code-label">{activeLang.code.toUpperCase()}</span>}
       </button>
 
       <div ref={dropdownRef} className="lang-dropdown" style={{ display: 'none' }}>

@@ -7,6 +7,8 @@ import { useCart } from '@/lib/CartContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { restaurants } from '@/lib/data';
+import ThemeToggle from '@/components/ThemeToggle';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 /**
  * AppNavbar — Always-visible navbar for app pages (Discover, Restaurant, etc.)
@@ -195,6 +197,8 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
 
           {/* Right actions */}
           <div className="app-navbar-actions">
+            <LanguageSwitcher variant="navbar" />
+            <ThemeToggle variant="navbar" />
             {/* Cart */}
             <button
               className="app-nav-icon-btn"

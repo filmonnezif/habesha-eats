@@ -10,7 +10,7 @@ import { useTheme } from '@/lib/ThemeContext';
  * between light and dark themes with a satisfying circular reveal
  * animation (day-to-night / night-to-day).
  */
-export default function ThemeToggle() {
+export default function ThemeToggle({ variant = 'floating' }) {
   const { theme, isDark, toggleTheme, toggleRef } = useTheme();
   const btnRef = useRef(null);
   const overlayRef = useRef(null);
@@ -108,7 +108,7 @@ export default function ThemeToggle() {
       {/* Toggle button */}
       <button
         ref={btnRef}
-        className="theme-toggle-btn"
+        className={variant === 'navbar' ? 'app-nav-icon-btn' : 'theme-toggle-btn'}
         onClick={handleToggle}
         aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
