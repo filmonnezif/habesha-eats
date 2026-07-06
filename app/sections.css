@@ -1222,6 +1222,33 @@
   .footer-columns { grid-template-columns: repeat(2, 1fr); }
   .footer-brand-row { flex-direction: column; align-items: flex-start; }
   .footer-bottom { flex-direction: column; align-items: center; text-align: center; }
+  .taste-of-home-section {
+    padding: 4rem 1rem;
+  }
+  .card-info-content {
+    padding: 1.25rem;
+    gap: 0.5rem;
+  }
+  .card-restaurant-name {
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+  }
+  .carousel-nav-controls {
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .carousel-nav-btn {
+    width: 42px;
+    height: 42px;
+  }
+  .final-cta-section {
+    padding: 4rem 1.5rem;
+  }
+  .dishes-section {
+    padding: 4rem 1rem;
+  }
+  .dish-card {
+    width: 260px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1460,6 +1487,40 @@
   .teaser-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  .coming-soon-title {
+    font-size: clamp(1.75rem, 6vw, 2.75rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-columns { grid-template-columns: 1fr; }
+  .footer-inner {
+    padding: 3rem 1rem 2rem;
+  }
+  .footer-wordmark {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+  }
+  .footer-legal {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+  .stats-section {
+    padding: 4rem 1rem;
+  }
+  .stat-card {
+    padding: 1.25rem 0.75rem;
+  }
+  .stat-value {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+  }
+  .testimonials-inner {
+    padding: 0 1rem;
+  }
+  .testimonial-card {
+    width: 260px;
+    padding: 1.25rem;
   }
 }
 

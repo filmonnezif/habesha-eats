@@ -101,7 +101,7 @@ export default function CheckoutPage() {
       </header>
 
       {/* Main Form Area */}
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem', display: 'grid', gridTemplateColumns: '1fr 420px', gap: '2.5rem' }} className="checkout-main-grid">
+      <main className="checkout-main-grid">
         {/* Left Columns - Form details */}
         <form onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           

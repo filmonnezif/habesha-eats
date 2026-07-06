@@ -162,6 +162,7 @@ export default function ProfilePage() {
 
         {/* Inner Tabs navigation */}
         <nav
+          className="profile-tabs-nav"
           style={{
             display: 'flex',
             gap: '2.5rem',
@@ -232,8 +233,9 @@ export default function ProfilePage() {
                   flexWrap: 'wrap',
                   gap: '1.5rem',
                 }}
+                className="profile-order-card"
               >
-                <div style={{ flex: 1, minWidth: '280px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                     <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>
                       {order.date}
@@ -274,7 +276,7 @@ export default function ProfilePage() {
 
         {/* Tab 2: Saved Kitchens Tab */}
         {activeTab === 'saved' && (
-          <div className="discover-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+          <div className="discover-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))' }}>
             {savedRestaurants.map((rest) => (
               <RestaurantCard key={rest.id} restaurant={rest} />
             ))}

@@ -87,27 +87,7 @@ export default function ItemCustomizationModal({ item, isOpen, onClose, onAdd })
       />
 
       {/* Modal Container */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '100%',
-          maxWidth: '540px',
-          background: '#22272c',
-          borderTopLeftRadius: '28px',
-          borderTopRightRadius: '28px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderBottom: 'none',
-          zIndex: 1020,
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '85vh',
-          boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.8)',
-          fontFamily: 'var(--font-body)',
-        }}
-      >
+      <div className="item-modal-container">
         {/* Header */}
         <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
           <div>
