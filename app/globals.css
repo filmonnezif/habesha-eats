@@ -1268,7 +1268,7 @@ html, body,
 }
 
 [data-theme="light"] .hero-desc {
-  color: rgba(15, 15, 15, 0.65);
+  color: #ffffff;
 }
 
 [data-theme="light"] .hero-scroll-indicator {
