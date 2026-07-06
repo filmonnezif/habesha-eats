@@ -718,12 +718,12 @@ body::before {
   text-align: center;
   line-height: 0.9;
   letter-spacing: -0.04em;
-  margin-top: -15vh; /* Position it above the center */
+  margin-top: -0.45em; /* Position it exactly above center */
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .hero-title-middle-spacer {
-  height: 38vh; /* Center spacer for the Mesob basket */
+  display: none; /* Removed the large gap between words */
 }
 
 .hero-title-bottom {
@@ -734,6 +734,7 @@ body::before {
   text-align: center;
   line-height: 0.9;
   letter-spacing: -0.04em;
+  margin-top: 0.45em; /* Position it exactly below center */
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
@@ -826,10 +827,12 @@ body::before {
 
 .hero-bottom-left-content {
   position: absolute;
-  bottom: 6vh;
-  left: 4vw;
-  max-width: 380px;
-  text-align: left;
+  top: calc(50% + 1.25em + 2rem); /* Directly beneath the clustered Habesha Eats text */
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 450px;
+  text-align: center;
+  align-items: center;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -922,10 +925,10 @@ body::before {
 /* Adjust layout on mobile devices */
 @media (max-width: 767px) {
   .hero-title-top {
-    margin-top: -15vh;
+    margin-top: -0.45em;
   }
   .hero-title-middle-spacer {
-    height: 32vh;
+    display: none;
   }
   .hero-symmetrical-spacer {
     width: clamp(140px, 28vw, 240px);
@@ -951,7 +954,8 @@ body::before {
     display: none;
   }
   .hero-bottom-left-content {
-    bottom: 12vh;
+    top: calc(50% + 1.25em + 1.5rem);
+    bottom: auto;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
