@@ -126,10 +126,12 @@ export default function TextOverlay({ progress = 0 }) {
 
       {/* Bottom-Left Slogan and Description */}
       <div className="hero-bottom-left-content" ref={descRef} style={{ willChange: 'transform, opacity, filter' }}>
-        <h2 className="hero-subhead">{t('hero.slogan')}</h2>
-        <p className="hero-desc" style={{ marginBottom: '1.5rem' }}>
-          {t('hero.desc')}
-        </p>
+        <h2 className="hero-subhead" style={{ marginBottom: '0.5rem' }}>{t('hero.slogan')}</h2>
+        <div className="hero-desc-container">
+          <p className="hero-desc">
+            {t('hero.desc')}
+          </p>
+        </div>
         <a href="/discover" className="shiny-btn">
           {t('navbar.exploreRestaurants')}
           <svg className="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

@@ -7,6 +7,8 @@ import { useCart } from '@/lib/CartContext';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { restaurants } from '@/lib/data';
+import ThemeToggle from '@/components/ThemeToggle';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 /**
  * AppNavbar — Always-visible navbar for app pages (Discover, Restaurant, etc.)
@@ -21,6 +23,15 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
   const menuLinksRef = useRef(null);
   const { t } = useLanguage();
   const router = useRouter();
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize(); // initialize
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Search autocomplete states
   const [suggestions, setSuggestions] = useState([]);
@@ -141,7 +152,7 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
             <input
               type="text"
               className="app-search-input"
-              placeholder={t('discover.searchPlaceholder')}
+              placeholder={isMobile ? 'Search' : t('navbar.findNearYou')}
               value={searchValue}
               onChange={(e) => {
                 onSearchChange?.(e.target.value);
@@ -195,6 +206,8 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
 
           {/* Right actions */}
           <div className="app-navbar-actions">
+            <LanguageSwitcher variant="navbar" />
+            <ThemeToggle variant="navbar" />
             {/* Cart */}
             <button
               className="app-nav-icon-btn"

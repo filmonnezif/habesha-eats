@@ -65,6 +65,7 @@ body {
   background: #16191c;
   line-height: 1.5;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ============================================================
@@ -196,6 +197,14 @@ body::before {
   transition: border-color 0.3s;
 }
 
+/* Hide custom cursor on touch devices */
+@media (pointer: coarse) {
+  .custom-cursor-dot,
+  .custom-cursor-ring {
+    display: none !important;
+  }
+}
+
 /* ============================================================
    Navbar
    ============================================================ */
@@ -244,6 +253,7 @@ body::before {
   text-decoration: none;
   color: var(--color-text-primary);
   transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 
 .navbar-brand:hover {
@@ -267,6 +277,9 @@ body::before {
   background-clip: text;
   transition: filter 0.3s ease;
   display: inline-block;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: max-content;
 }
 
 .navbar-brand:hover .navbar-wordmark {
@@ -572,6 +585,21 @@ body::before {
   .hamburger-btn {
     display: flex;
   }
+
+  .navbar {
+    padding: 0 1rem;
+    height: 70px;
+  }
+
+  .navbar-wordmark {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-wordmark {
+    font-size: 0.95rem;
+  }
 }
 
 /* Hamburger Button */
@@ -684,28 +712,29 @@ body::before {
 
 .hero-title-top {
   font-family: var(--font-display);
-  font-size: clamp(3.5rem, 11vw, 9.5rem);
+  font-size: clamp(2.5rem, 7vw, 6.5rem);
   font-weight: 900;
   color: #ffffff;
   text-align: center;
   line-height: 0.9;
   letter-spacing: -0.04em;
-  margin-top: -15vh; /* Position it above the center */
+  margin-top: -0.75em; /* Position it exactly above center with breathing room */
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .hero-title-middle-spacer {
-  height: 38vh; /* Center spacer for the Mesob basket */
+  display: none; /* Removed the large gap between words */
 }
 
 .hero-title-bottom {
   font-family: var(--font-display);
-  font-size: clamp(3.5rem, 11vw, 9.5rem);
+  font-size: clamp(2.5rem, 7vw, 6.5rem);
   font-weight: 900;
   color: #ffffff;
   text-align: center;
   line-height: 0.9;
   letter-spacing: -0.04em;
+  margin-top: 0.75em; /* Position it exactly below center with breathing room */
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
@@ -798,14 +827,38 @@ body::before {
 
 .hero-bottom-left-content {
   position: absolute;
-  bottom: 6vh;
-  left: 4vw;
-  max-width: 380px;
-  text-align: left;
+  top: calc(50% + 7rem); /* Push down enough to clear the headline text */
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  max-width: 450px;
+  text-align: center;
+  align-items: center;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.25rem;
   pointer-events: auto;
+}
+
+.hero-bottom-left-content .shiny-btn {
+  flex-shrink: 0;
+}
+
+.hero-desc-container {
+  /* HUD-style Blur Background */
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .hero-mini-tags {
@@ -835,8 +888,9 @@ body::before {
 
 .hero-desc {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
+  font-weight:500;
 }
 
 /* ============================================================
@@ -894,10 +948,10 @@ body::before {
 /* Adjust layout on mobile devices */
 @media (max-width: 767px) {
   .hero-title-top {
-    margin-top: -8vh;
+    margin-top: -0.75em;
   }
   .hero-title-middle-spacer {
-    height: 32vh;
+    display: none;
   }
   .hero-symmetrical-spacer {
     width: clamp(140px, 28vw, 240px);
@@ -923,23 +977,61 @@ body::before {
     display: none;
   }
   .hero-bottom-left-content {
-    bottom: 12vh;
-    left: 50%;
-    transform: translateX(-50%);
+    top: calc(50% + 5.5rem);
+    bottom: auto;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
     text-align: center;
     max-width: 90vw;
     align-items: center;
   }
-  .hero-bottom-left-content .shiny-btn {
-    width: 100%;
-    justify-content: center;
+  .hero-desc-container {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
   }
   .hero-scroll-indicator {
     bottom: 3vh;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: max-content;
     font-size: 0.8125rem;
+  }
+  .text-overlay-cta-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .cta-button {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title-top,
+  .hero-title-bottom {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+  .floating-badge {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.6875rem;
+  }
+  .badge-1 {
+    left: 4vw;
+  }
+  .badge-2 {
+    right: 4vw;
+  }
+  .hero-bottom-left-content {
+    bottom: 15vh;
+  }
+  .hero-subhead {
+    font-size: clamp(1rem, 4vw, 1.25rem);
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -991,8 +1083,8 @@ body::before {
 
 .theme-toggle-btn {
   position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
+  top: 0.5rem;
+  right: 0.5rem;
   z-index: 9996;
   width: 46px;
   height: 46px;
@@ -1172,16 +1264,16 @@ html, body,
 [data-theme="light"] .hero-title-bottom,
 [data-theme="light"] .hero-title-symmetrical-left,
 [data-theme="light"] .hero-title-symmetrical-right {
-  color: #0a0a0a;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
 }
 
 [data-theme="light"] .hero-subhead {
-  color: #0f0f0f;
+  color: #ffffff;
 }
 
 [data-theme="light"] .hero-desc {
-  color: rgba(15, 15, 15, 0.65);
+  color: #ffffff;
 }
 
 [data-theme="light"] .hero-scroll-indicator {
@@ -1298,8 +1390,8 @@ html[lang="ti"] h1, html[lang="ti"] h2, html[lang="ti"] h3, html[lang="ti"] h4 {
 
 .lang-switcher-wrapper {
   position: fixed;
-  top: 1.25rem;
-  right: 4.75rem; /* Placed exactly beside the theme toggle button */
+  top: 0.5rem;
+  right: 3.25rem; /* Placed exactly beside the theme toggle button */
   z-index: 9996;
 }
 
@@ -1448,14 +1540,29 @@ html[lang="ti"] h1, html[lang="ti"] h2, html[lang="ti"] h3, html[lang="ti"] h4 {
 
 [data-theme="light"] .lang-option-active {
   background: var(--color-habesha-green) !important;
-  color: #ffffff !important;
+}
+
+/* Hide globally fixed theme/lang buttons on pages with app-navbar */
+body:has(.app-navbar) .theme-toggle-btn,
+body:has(.app-navbar) .lang-switcher-wrapper {
+  display: none !important;
 }
 
 /* Adjust language switcher position on mobile viewports */
 @media (max-width: 767px) {
-  .lang-switcher-wrapper {
-    right: 4.5rem;
+  .lang-dropdown-menu {
+    bottom: auto;
+    top: 120%;
   }
 }
 
-
+@media (max-width: 480px) {
+  .theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .lang-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
