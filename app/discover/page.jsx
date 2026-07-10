@@ -1,22 +1,27 @@
 'use client';
 
-import { useState, useEffect, Suspense, useRef } from 'react';
+import { useState, useEffect, Suspense, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { gsap } from 'gsap';
+import dynamic from 'next/dynamic';
 import AppNavbar from '@/components/AppNavbar';
 import CartDrawer from '@/components/CartDrawer';
 import RestaurantCard from '@/components/RestaurantCard';
+import SmartSuggestions from '@/components/SmartSuggestions';
+import PriceCompare from '@/components/PriceCompare';
 import { useCart } from '@/lib/CartContext';
-import Link from 'next/link';
 import { useLanguage } from '@/lib/LanguageContext';
-import {
-  restaurants,
-  EMIRATES,
-  CUISINES,
-  SORT_OPTIONS,
-  DISH_CATEGORIES,
-} from '@/lib/data';
+import { getUserLocation, reverseGeocode, haversineDistance, getRestaurantCoords, getTravelModes } from '@/lib/geo';
+import { EMIRATES, SORT_OPTIONS, restaurants as hardcodedRestaurants } from '@/lib/data';
+import Link from 'next/link';
 
+// Dynamic import for map (heavy WebGL dependency)
+const DiscoverMap = dynamic(() => import('@/components/DiscoverMap'), {
+  ssr: false,
+  loading: () => <div className="discover-map-skeleton"><div className="map-skeleton-pulse" /></div>,
+});
+
+/* ───────── Custom Dropdown (reused) ───────── */
 function CustomDropdown({ value, onChange, options, ariaLabel, showLocationPin = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -81,148 +86,273 @@ function CustomDropdown({ value, onChange, options, ariaLabel, showLocationPin =
   );
 }
 
+/* ───────── Travel Mode Chips ───────── */
+function TravelModes({ restaurant, userLocation }) {
+  const travelInfo = userLocation ? getTravelModes(restaurant, userLocation.lat, userLocation.lng) : null;
+
+  if (!travelInfo || !travelInfo.distance) return null;
+
+  return (
+    <div className="travel-modes">
+      <div className="travel-distance-badge">
+        <span className="travel-distance-icon">📍</span>
+        <span>{travelInfo.distance.toFixed(1)} km</span>
+      </div>
+      <div className="travel-chips">
+        {travelInfo.modes.slice(0, 3).map(mode => (
+          <div key={mode.key} className="travel-chip">
+            <span className="travel-chip-icon">{mode.icon}</span>
+            <span className="travel-chip-time">{mode.timeLabel || `${mode.time} min`}</span>
+            {mode.cost > 0 && <span className="travel-chip-cost">AED {mode.cost}</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ───────── Main Discover Content ───────── */
 function DiscoverContent() {
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
-  
-  // State variables
+
+  // State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmirate, setSelectedEmirate] = useState('All Emirates');
   const [selectedCuisine, setSelectedCuisine] = useState('All');
   const [sortBy, setSortBy] = useState('recommended');
   const [isLoading, setIsLoading] = useState(true);
-  const [animatedCount, setAnimatedCount] = useState(0);
-  
-  const { totalItems, subtotal, restaurantName } = useCart();
+  const [dbRestaurants, setDbRestaurants] = useState([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [showMap, setShowMap] = useState(false); // Mobile map toggle
 
-  // Initialize search query and emirate filter from URL if present
+  // Geolocation state
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationName, setLocationName] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('idle'); // idle | loading | granted | denied
+  const [distances, setDistances] = useState({});
+
+  const { totalItems, subtotal, restaurantName } = useCart();
+  const selectedCardRef = useRef(null);
+
+  // Fetch restaurants from database
+  useEffect(() => {
+    async function fetchRestaurants() {
+      try {
+        const res = await fetch('/api/restaurants');
+        if (res.ok) {
+          const data = await res.json();
+          // Merge hardcoded data (coordinates, menu, deliveryFee, etc.)
+          const merged = data.map(dbR => {
+            const hc = hardcodedRestaurants.find(hr => hr.slug === dbR.slug || hr.id === dbR.slug);
+            if (hc) {
+              return {
+                ...dbR,
+                coordinates: hc.coordinates,
+                deliveryFee: dbR.deliveryFee ?? hc.deliveryFee,
+                deliveryTime: dbR.deliveryTime ?? hc.deliveryTime,
+                menu: hc.menu,
+              };
+            }
+            return dbR;
+          });
+          setDbRestaurants(merged);
+        }
+      } catch (err) {
+        console.error('Failed to fetch restaurants:', err);
+        // Fallback to hardcoded data
+        setDbRestaurants(hardcodedRestaurants);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchRestaurants();
+  }, []);
+
+  // Request user location
+  useEffect(() => {
+    setLocationStatus('loading');
+    getUserLocation()
+      .then(async (loc) => {
+        setUserLocation(loc);
+        setLocationStatus('granted');
+        // Reverse geocode to get area name
+        const name = await reverseGeocode(loc.lat, loc.lng);
+        if (name) setLocationName(name);
+      })
+      .catch(() => {
+        setLocationStatus('denied');
+        // Default to Dubai center
+        setUserLocation({ lat: 25.2048, lng: 55.2708 });
+      });
+  }, []);
+
+  // Compute distances whenever restaurants or user location change
+  useEffect(() => {
+    if (!userLocation || dbRestaurants.length === 0) return;
+    const dists = {};
+    dbRestaurants.forEach(r => {
+      const coords = getRestaurantCoords(r);
+      if (coords) {
+        const d = haversineDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+        dists[r.id] = d;
+        dists[r.slug] = d;
+      }
+    });
+    setDistances(dists);
+  }, [userLocation, dbRestaurants]);
+
+  // Initialize from URL
   useEffect(() => {
     const q = searchParams.get('q');
     if (q) setSearchTerm(q);
     const emirate = searchParams.get('emirate');
     if (emirate) setSelectedEmirate(emirate);
-    
-    // Simulate loading animation for rich premium feel
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
   }, [searchParams]);
 
-  // Process data (Filter + Sort)
-  const filteredRestaurants = restaurants.filter((restaurant) => {
-    // 1. Search Query Match
+  // Filter restaurants
+  const filteredRestaurants = dbRestaurants.filter((restaurant) => {
     if (searchTerm) {
       const query = searchTerm.toLowerCase();
       const matchName = restaurant.name.toLowerCase().includes(query);
-      const matchTagline = restaurant.tagline.toLowerCase().includes(query);
-      const matchDesc = restaurant.description.toLowerCase().includes(query);
-      const matchArea = restaurant.area.toLowerCase().includes(query);
-      const matchTags = restaurant.tags.some((t) => t.toLowerCase().includes(query));
-      
-      const matchDishes = restaurant.menu.some((cat) =>
-        cat.items.some(
-          (item) =>
-            item.name.toLowerCase().includes(query) ||
-            item.description.toLowerCase().includes(query)
-        )
-      );
-
-      if (!matchName && !matchTagline && !matchDesc && !matchArea && !matchTags && !matchDishes) {
-        return false;
-      }
+      const matchTagline = (restaurant.tagline || '').toLowerCase().includes(query);
+      const matchDesc = (restaurant.description || '').toLowerCase().includes(query);
+      const matchArea = (restaurant.area || '').toLowerCase().includes(query);
+      const matchEmirate = (restaurant.emirate || '').toLowerCase().includes(query);
+      const matchCuisine = (restaurant.cuisines || []).some(c => c.toLowerCase().includes(query));
+      if (!matchName && !matchTagline && !matchDesc && !matchArea && !matchEmirate && !matchCuisine) return false;
     }
-
-    // 2. Emirate Filter Match
     if (selectedEmirate !== 'All Emirates') {
-      if (restaurant.emirate.toLowerCase() !== selectedEmirate.toLowerCase()) {
-        return false;
-      }
+      const hasEmirate = restaurant.branches?.some(b => b.emirate?.toLowerCase() === selectedEmirate.toLowerCase());
+      if (!hasEmirate && restaurant.emirate?.toLowerCase() !== selectedEmirate.toLowerCase()) return false;
     }
-
-    // 3. Cuisine / Dietary Filter Match
     if (selectedCuisine !== 'All') {
-      if (selectedCuisine === 'Vegetarian' || selectedCuisine === 'Vegan') {
-        const dietLower = selectedCuisine.toLowerCase();
-        const matchAmenity = restaurant.amenities.includes(dietLower);
-        const matchTag = restaurant.tags.some((t) => t.toLowerCase().includes(dietLower));
-        const matchMenuItems = restaurant.menu.some((cat) =>
-          cat.items.some((item) => item.tags.includes(dietLower))
-        );
-        if (!matchAmenity && !matchTag && !matchMenuItems) return false;
-      } else {
-        if (!restaurant.cuisine.some((c) => c.toLowerCase() === selectedCuisine.toLowerCase())) {
-          return false;
-        }
-      }
+      const cuisines = restaurant.cuisines || [];
+      if (!cuisines.some(c => c.toLowerCase().includes(selectedCuisine.toLowerCase()))) return false;
     }
-
     return true;
   });
 
-  // Sort logic
+  // Sort restaurants
   const sortedRestaurants = [...filteredRestaurants].sort((a, b) => {
-    if (sortBy === 'rating') {
-      return b.rating - a.rating;
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+    if (sortBy === 'price-low') return (a.priceRange || '$$').length - (b.priceRange || '$$').length;
+    if (sortBy === 'price-high') return (b.priceRange || '$$').length - (a.priceRange || '$$').length;
+    if (sortBy === 'nearest' && userLocation) {
+      return (distances[a.id] ?? 999) - (distances[b.id] ?? 999);
     }
-    if (sortBy === 'price-low') {
-      return a.priceRange.length - b.priceRange.length;
+    if (sortBy === 'newest') return (b.reviewCount || 0) - (a.reviewCount || 0);
+    // Default: distance if available, otherwise alphabetical
+    if (userLocation && distances[a.id] !== undefined) {
+      return (distances[a.id] ?? 999) - (distances[b.id] ?? 999);
     }
-    if (sortBy === 'price-high') {
-      return b.priceRange.length - a.priceRange.length;
-    }
-    if (sortBy === 'newest') {
-      return b.reviewCount - a.reviewCount;
-    }
-    return b.rating * b.reviewCount - a.rating * a.reviewCount;
+    return a.name.localeCompare(b.name);
   });
 
-  // Stagger entry effect with GSAP
+  // Determine if user is actively searching/filtering
+  const isActivelyFiltering = searchTerm.length > 0 || selectedEmirate !== 'All Emirates' || selectedCuisine !== 'All' || sortBy !== 'recommended';
+
+  // Smart display: show only top 6 by default, all when actively filtering
+  const MAX_DEFAULT = 6;
+  const [showAllRestaurants, setShowAllRestaurants] = useState(false);
+
+  // Reset "show all" when filters change
   useEffect(() => {
-    if (!isLoading) {
+    setShowAllRestaurants(false);
+  }, [searchTerm, selectedEmirate, selectedCuisine, sortBy]);
+
+  const displayRestaurants = (isActivelyFiltering || showAllRestaurants)
+    ? sortedRestaurants
+    : sortedRestaurants.slice(0, MAX_DEFAULT);
+
+  const hiddenCount = sortedRestaurants.length - displayRestaurants.length;
+
+  // GSAP stagger animation
+  useEffect(() => {
+    if (!isLoading && displayRestaurants.length > 0) {
       const ctx = gsap.context(() => {
         gsap.fromTo(
           '.rc-card',
           { opacity: 0, y: 30, scale: 0.96 },
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: 0.55,
-            stagger: 0.06,
-            ease: 'power3.out',
-            clearProps: 'transform,opacity',
-          }
+          { opacity: 1, y: 0, scale: 1, duration: 0.55, stagger: 0.06, ease: 'power3.out', clearProps: 'transform,opacity' }
         );
       });
       return () => ctx.revert();
     }
-  }, [isLoading, sortedRestaurants.length, selectedEmirate, selectedCuisine]);
+  }, [isLoading, displayRestaurants.length, selectedEmirate, selectedCuisine, showAllRestaurants]);
 
-  // Results count-up animation
-  useEffect(() => {
-    if (!isLoading) {
-      const target = { val: animatedCount };
-      gsap.to(target, {
-        val: sortedRestaurants.length,
-        duration: 0.4,
-        ease: 'power1.out',
-        onUpdate: () => {
-          setAnimatedCount(Math.floor(target.val));
-        }
-      });
+  // Handle restaurant selection (scroll card into view + highlight on map)
+  const handleSelectRestaurant = useCallback((restaurant) => {
+    setSelectedRestaurant(restaurant);
+    // Scroll the card into view on mobile
+    const cardEl = document.querySelector(`[data-restaurant-id="${restaurant.slug || restaurant.id}"]`);
+    if (cardEl) {
+      cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      cardEl.classList.add('rc-card-highlighted');
+      setTimeout(() => cardEl.classList.remove('rc-card-highlighted'), 2000);
     }
-  }, [sortedRestaurants.length, isLoading]);
+  }, []);
+
+  // Extended sort options with 'nearest'
+  const extendedSortOptions = [
+    ...SORT_OPTIONS,
+    ...(userLocation ? [{ value: 'nearest', label: 'Nearest First' }] : []),
+  ];
 
   return (
     <div className="discover-page">
       <AppNavbar onSearchChange={setSearchTerm} searchValue={searchTerm} />
       <CartDrawer />
 
-      {/* Sticky Filters & Controls (Compressed Design) */}
-      <section className="discover-controls" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '1rem', paddingBottom: '1rem' }}>
-        <div className="discover-controls-inner" style={{ padding: '0.6rem 2rem' }}>
-          {/* Emirate Dropdown Filter (Outside overflow-x container) */}
+      {/* Location Status Bar */}
+      <div className="location-bar" id="location-bar">
+        <div className="location-bar-inner">
+          <div className="location-bar-left">
+            {locationStatus === 'loading' && (
+              <>
+                <div className="location-bar-pulse" />
+                <span className="location-bar-text">Locating you...</span>
+              </>
+            )}
+            {locationStatus === 'granted' && (
+              <>
+                <span className="location-bar-icon">📍</span>
+                <span className="location-bar-text">
+                  Near <strong>{locationName || 'your location'}</strong>
+                </span>
+              </>
+            )}
+            {locationStatus === 'denied' && (
+              <>
+                <span className="location-bar-icon">🌍</span>
+                <span className="location-bar-text">
+                  Showing all UAE · <button className="location-bar-enable" onClick={() => {
+                    setLocationStatus('loading');
+                    getUserLocation().then(async (loc) => {
+                      setUserLocation(loc);
+                      setLocationStatus('granted');
+                      const name = await reverseGeocode(loc.lat, loc.lng);
+                      if (name) setLocationName(name);
+                    }).catch(() => setLocationStatus('denied'));
+                  }}>Enable location</button>
+                </span>
+              </>
+            )}
+          </div>
+          <div className="location-bar-right">
+            <span className="location-bar-count">
+              {isActivelyFiltering || showAllRestaurants
+                ? `${sortedRestaurants.length} restaurant${sortedRestaurants.length !== 1 ? 's' : ''}`
+                : `Top ${displayRestaurants.length} of ${sortedRestaurants.length}`
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <section className="discover-controls" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
+        <div className="discover-controls-inner" style={{ padding: '0.4rem 2rem' }}>
           <CustomDropdown
             value={selectedEmirate}
             onChange={setSelectedEmirate}
@@ -233,8 +363,6 @@ function DiscoverContent() {
             ariaLabel="Filter by Emirate"
             showLocationPin={true}
           />
-
-          {/* Cuisine Dropdown Filter */}
           <CustomDropdown
             value={selectedCuisine}
             onChange={setSelectedCuisine}
@@ -247,75 +375,145 @@ function DiscoverContent() {
             ]}
             ariaLabel="Filter by Cuisine"
           />
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            {/* Sort Dropdown */}
-            <CustomDropdown
-              value={sortBy}
-              onChange={setSortBy}
-              options={SORT_OPTIONS.map((opt) => {
-                let label = opt.label;
-                if (opt.value === 'recommended') {
-                  label = language === 'am' ? 'የተመከሩ' : language === 'ti' ? 'ዝተመርጹ' : language === 'om' ? 'Kan Filatame' : opt.label;
-                } else if (opt.value === 'rating') {
-                  label = language === 'am' ? 'ደረጃ (ከፍተኛ)' : language === 'ti' ? 'ደረጃ (ለዓሊ)' : language === 'om' ? 'Sadarkaa' : opt.label;
-                } else if (opt.value === 'price-low') {
-                  label = language === 'am' ? 'ዋጋ (ከአነስተኛ)' : language === 'ti' ? 'ዋጋ (ካብ ትሑት)' : language === 'om' ? 'Gatii (Gadaanaa)' : opt.label;
-                } else if (opt.value === 'price-high') {
-                  label = language === 'am' ? 'ዋጋ (ከከፍተኛ)' : language === 'ti' ? 'ዋጋ (ካብ ልዑል)' : language === 'om' ? 'Gatii (Olaanaa)' : opt.label;
-                }
-                return { value: opt.value, label };
-              })}
-              ariaLabel="Sort restaurants"
-            />
-          </div>
+          <CustomDropdown
+            value={sortBy}
+            onChange={setSortBy}
+            options={extendedSortOptions.map((opt) => {
+              let label = opt.label;
+              if (opt.value === 'recommended') {
+                label = language === 'am' ? 'የተመከሩ' : language === 'ti' ? 'ዝተመርጹ' : language === 'om' ? 'Kan Filatame' : opt.label;
+              } else if (opt.value === 'rating') {
+                label = language === 'am' ? 'ደረጃ (ከፍተኛ)' : language === 'ti' ? 'ደረጃ (ለዓሊ)' : language === 'om' ? 'Sadarkaa' : opt.label;
+              }
+              return { value: opt.value, label };
+            })}
+            ariaLabel="Sort restaurants"
+          />
         </div>
       </section>
 
-      {/* Results Count with Animated count-up */}
+      {/* Smart Suggestions (AI Cards) */}
       {!isLoading && (
-        <div className="discover-results-count">
-          Showing <span>{animatedCount}</span> restaurants matching your filters
-        </div>
+        <SmartSuggestions
+          restaurants={dbRestaurants}
+          userLocation={userLocation}
+          onSelectRestaurant={handleSelectRestaurant}
+          onSelectDish={() => {}}
+        />
       )}
 
-      {/* Content Area */}
-      <main className="discover-container">
-        {isLoading ? (
-          <div className="discover-grid">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="skeleton-card" />
-            ))}
-          </div>
-        ) : sortedRestaurants.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🍲</div>
-            <h2 className="empty-title">{t('discover.emptyTitle')}</h2>
-            <p className="empty-desc">
-              {t('discover.emptyDesc')}
-            </p>
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedEmirate('All Emirates');
-                setSelectedCuisine('All');
-                setSelectedDietary([]);
-              }}
-              className="shiny-btn-mini"
-            >
-              {t('discover.resetFilters')}
-            </button>
-          </div>
+      {/* Split View: Left Panel + Map */}
+      <div className="discover-split-view">
+        {/* Left Panel — Price Compare + Restaurant Grid */}
+        <div className="discover-left-panel">
+          {/* Price Comparison */}
+          {!isLoading && (
+            <PriceCompare
+              restaurants={dbRestaurants}
+              userLocation={userLocation}
+              onSelectRestaurant={handleSelectRestaurant}
+            />
+          )}
+
+          {/* Restaurant Grid */}
+          <main className="discover-container">
+            {isLoading ? (
+              <div className="discover-grid">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="skeleton-card" />
+                ))}
+              </div>
+            ) : displayRestaurants.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">🍲</div>
+                <h2 className="empty-title">{t('discover.emptyTitle')}</h2>
+                <p className="empty-desc">{t('discover.emptyDesc')}</p>
+                <button
+                  onClick={() => { setSearchTerm(''); setSelectedEmirate('All Emirates'); setSelectedCuisine('All'); }}
+                  className="shiny-btn-mini"
+                >
+                  {t('discover.resetFilters')}
+                </button>
+              </div>
+            ) : (
+              <>
+                {!isActivelyFiltering && !showAllRestaurants && (
+                  <div className="discover-section-label">
+                    <span className="discover-section-label-icon">🏆</span>
+                    <span>Best picks near you</span>
+                  </div>
+                )}
+                <div className="discover-grid" id="discover-grid">
+                  {displayRestaurants.map((restaurant, idx) => (
+                    <div
+                      key={restaurant.id}
+                      data-restaurant-id={restaurant.slug || restaurant.id}
+                      onClick={() => handleSelectRestaurant(restaurant)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <Suspense fallback={<div className="skeleton-card" />}>
+                        <RestaurantCard restaurant={restaurant} index={idx} />
+                      </Suspense>
+                      <TravelModes restaurant={restaurant} userLocation={userLocation} />
+                    </div>
+                  ))}
+                </div>
+                {/* Explore More button when showing default limited view */}
+                {hiddenCount > 0 && !isActivelyFiltering && !showAllRestaurants && (
+                  <button
+                    className="discover-explore-more"
+                    onClick={() => setShowAllRestaurants(true)}
+                  >
+                    <span className="discover-explore-more-icon">🔍</span>
+                    <span>Explore {hiddenCount} more restaurant{hiddenCount !== 1 ? 's' : ''}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6" /></svg>
+                  </button>
+                )}
+              </>
+            )}
+          </main>
+        </div>
+
+        {/* Right Panel — Map (desktop) */}
+        <div className={`discover-map-container ${showMap ? 'discover-map-mobile-show' : ''}`}>
+          <DiscoverMap
+            restaurants={displayRestaurants}
+            userLocation={userLocation}
+            selectedRestaurant={selectedRestaurant}
+            onSelectRestaurant={handleSelectRestaurant}
+            distances={distances}
+          />
+        </div>
+      </div>
+
+      {/* Mobile Map Toggle FAB */}
+      <button
+        className="map-toggle-fab"
+        onClick={() => setShowMap(!showMap)}
+        aria-label={showMap ? 'Show list' : 'Show map'}
+        id="map-toggle-fab"
+      >
+        {showMap ? (
+          <>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+            <span>List</span>
+          </>
         ) : (
-          <div className="discover-grid" id="discover-grid">
-            {sortedRestaurants.map((restaurant, idx) => (
-              <Suspense key={restaurant.id} fallback={<div className="skeleton-card" />}>
-                <RestaurantCard restaurant={restaurant} index={idx} />
-              </Suspense>
-            ))}
-          </div>
+          <>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+              <line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" />
+            </svg>
+            <span>Map</span>
+          </>
         )}
-      </main>
+      </button>
+
+      {/* Mobile Map Overlay Backdrop */}
+      {showMap && <div className="map-mobile-backdrop" onClick={() => setShowMap(false)} />}
 
       {/* Sticky Bottom Cart Bar */}
       {totalItems > 0 && (
@@ -327,10 +525,7 @@ function DiscoverContent() {
             <span className="sticky-order-restaurant">{t('discover.stickyFrom')} {restaurantName}</span>
           </div>
           <button
-            onClick={() => {
-              const btn = document.getElementById('cart-btn');
-              if (btn) btn.click();
-            }}
+            onClick={() => { const btn = document.getElementById('cart-btn'); if (btn) btn.click(); }}
             className="shiny-btn-mini"
             style={{ padding: '0.5rem 1.25rem' }}
           >
@@ -349,4 +544,3 @@ export default function DiscoverPage() {
     </Suspense>
   );
 }
-

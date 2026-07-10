@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import Link from 'next/link';
 import FloatingBeans from './FloatingBeans';
 import { useLanguage } from '@/lib/LanguageContext';
 import { restaurants as DB_RESTAURANTS } from '@/lib/data';
@@ -66,8 +67,40 @@ export default function TasteOfHome() {
   const carouselTrackRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [dbRestaurants, setDbRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const displayRestaurants = DB_RESTAURANTS.slice(0, 5).map(translateRestaurant);
+  // Fetch featured restaurants from database on mount
+  useEffect(() => {
+    async function fetchFeatured() {
+      try {
+        const res = await fetch('/api/restaurants');
+        if (res.ok) {
+          const data = await res.json();
+          // Filter out restaurants with status ACTIVE if possible, otherwise use what we have
+          setDbRestaurants(data.slice(0, 5));
+        }
+      } catch (err) {
+        console.error('Failed to fetch featured restaurants:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFeatured();
+  }, []);
+
+  const displayRestaurants = dbRestaurants.map(r => {
+    const tr = translateRestaurant(r);
+    return {
+      ...tr,
+      // Fallback fields for display
+      specialty: tr.specialty || tr.cuisines?.[0] || 'Habesha',
+      heroImage: tr.heroImage || tr.hero_image_url || '/images/dish_injera.webp',
+      rating: tr.rating || 4.5,
+      reviewCount: tr.reviewCount || 0,
+      slug: tr.slug || tr.id,
+    };
+  });
 
   // IntersectionObserver for entrance reveal
   useEffect(() => {
@@ -90,7 +123,7 @@ export default function TasteOfHome() {
 
   // Entrance animations
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || loading || displayRestaurants.length === 0) return;
 
     const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
 
@@ -123,14 +156,16 @@ export default function TasteOfHome() {
     );
 
     return () => tl.kill();
-  }, [visible]);
+  }, [visible, loading, displayRestaurants.length]);
 
   // Handle slide transitions
   const slideTo = (index) => {
     if (index < 0 || index >= displayRestaurants.length) return;
     setCurrentIndex(index);
 
-    const cardWidth = carouselTrackRef.current.querySelector('.restaurant-carousel-card').offsetWidth;
+    const card = carouselTrackRef.current?.querySelector('.restaurant-carousel-card');
+    if (!card) return;
+    const cardWidth = card.offsetWidth;
     const gap = 24; // 1.5rem gap
 
     gsap.to(carouselTrackRef.current, {
@@ -174,91 +209,100 @@ export default function TasteOfHome() {
         </div>
 
         {/* Carousel Container */}
-        <div className="taste-carousel-container" style={{ opacity: 0 }}>
-          <div className="taste-carousel-viewport">
-            <div ref={carouselTrackRef} className="taste-carousel-track">
-              {displayRestaurants.map((restaurant, i) => (
-                <Card3DTilt
-                  key={restaurant.id}
-                  className={`restaurant-carousel-card ${i === currentIndex ? 'card-active' : ''}`}
-                >
-                  <div className="card-image-wrapper">
-                    <img
-                      src={restaurant.heroImage}
-                      alt={restaurant.name}
-                      className="card-restaurant-image"
-                    />
-                    <span className="card-emirate-badge">
-                      {restaurant.emirate}
-                    </span>
-                  </div>
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
+            <div className="skeleton-card" style={{ width: '400px', height: '350px' }} />
+          </div>
+        ) : displayRestaurants.length === 0 ? (
+          <p style={{ textAlign: 'center', opacity: 0.5 }}>No restaurants loaded</p>
+        ) : (
+          <div className="taste-carousel-container" style={{ opacity: 0 }}>
+            <div className="taste-carousel-viewport">
+              <div ref={carouselTrackRef} className="taste-carousel-track">
+                {displayRestaurants.map((restaurant, i) => (
+                  <Card3DTilt
+                    key={restaurant.id}
+                    className={`restaurant-carousel-card ${i === currentIndex ? 'card-active' : ''}`}
+                  >
+                    <div className="card-image-wrapper">
+                      <img
+                        src={restaurant.heroImage}
+                        alt={restaurant.name}
+                        className="card-restaurant-image"
+                        onError={(e) => { e.target.src = '/images/dish_injera.webp'; }}
+                      />
+                      <span className="card-emirate-badge">
+                        {restaurant.emirate}
+                      </span>
+                    </div>
 
-                  <div className="card-info-content">
-                    <div className="card-header-row">
-                      <h3 className="card-restaurant-name">{restaurant.name}</h3>
-                      <div className="card-rating-badge">
-                        <svg className="star-icon" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                        </svg>
-                        <span>{restaurant.rating}</span>
+                    <div className="card-info-content">
+                      <div className="card-header-row">
+                        <h3 className="card-restaurant-name">{restaurant.name}</h3>
+                        <div className="card-rating-badge">
+                          <svg className="star-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                          </svg>
+                          <span>{restaurant.rating}</span>
+                        </div>
+                      </div>
+
+                      <p className="card-tagline">{restaurant.tagline}</p>
+                      <p className="card-description">{restaurant.description}</p>
+                      <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+                        <Link href={`/restaurant/${restaurant.slug}`} className="shiny-btn-mini" style={{ width: 'fit-content' }}>
+                          {t('tasteOfHome.viewMenu')}
+                        </Link>
+                      </div>
+
+                      <div className="card-footer-row">
+                        <span className="card-specialty">
+                          {t('tasteOfHome.specialty')}: <strong>{restaurant.specialty}</strong>
+                        </span>
+                        <span className="card-reviews">{restaurant.reviewCount} {t('tasteOfHome.reviews')}</span>
                       </div>
                     </div>
-
-                    <p className="card-tagline">{restaurant.tagline}</p>
-                    <p className="card-description">{restaurant.description}</p>
-                    <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
-                      <a href={`/restaurant/${restaurant.id}`} className="shiny-btn-mini" style={{ width: 'fit-content' }}>
-                        {t('tasteOfHome.viewMenu')}
-                      </a>
-                    </div>
-
-                    <div className="card-footer-row">
-                      <span className="card-specialty">
-                        {t('tasteOfHome.specialty')}: <strong>{restaurant.specialty}</strong>
-                      </span>
-                      <span className="card-reviews">{restaurant.reviewCount} {t('tasteOfHome.reviews')}</span>
-                    </div>
-                  </div>
-                </Card3DTilt>
-              ))}
-            </div>
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="carousel-nav-controls">
-            <button
-              onClick={handlePrev}
-              className="carousel-nav-btn prev-btn"
-              aria-label="Previous slide"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="nav-arrow">
-                <path d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            {/* Pagination Dots */}
-            <div className="carousel-dots">
-              {displayRestaurants.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => slideTo(i)}
-                  className={`carousel-dot ${i === currentIndex ? 'dot-active' : ''}`}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
+                  </Card3DTilt>
+                ))}
+              </div>
             </div>
 
-            <button
-              onClick={handleNext}
-              className="carousel-nav-btn next-btn"
-              aria-label="Next slide"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="nav-arrow">
-                <path d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            {/* Navigation Controls */}
+            <div className="carousel-nav-controls">
+              <button
+                onClick={handlePrev}
+                className="carousel-nav-btn prev-btn"
+                aria-label="Previous slide"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="nav-arrow">
+                  <path d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Pagination Dots */}
+              <div className="carousel-dots">
+                {displayRestaurants.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => slideTo(i)}
+                    className={`carousel-dot ${i === currentIndex ? 'dot-active' : ''}`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={handleNext}
+                className="carousel-nav-btn next-btn"
+                aria-label="Next slide"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="nav-arrow">
+                  <path d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

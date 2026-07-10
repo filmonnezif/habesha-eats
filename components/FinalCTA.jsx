@@ -94,7 +94,7 @@ export default function FinalCTA() {
         <div className="partner-cta" style={{ opacity: 0 }}>
           <p className="partner-cta-text">
             {t('finalCta.partnerText')}{' '}
-            <a href="#contact" className="partner-cta-link">{t('finalCta.partnerLink')}</a>
+            <a href="/partner" className="partner-cta-link">{t('finalCta.partnerLink')}</a>
           </p>
         </div>
       </div>

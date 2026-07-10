@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
-import { getRestaurantById } from '@/lib/data';
 import { useLanguage } from '@/lib/LanguageContext';
 
 /**
@@ -13,7 +12,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 export default function CartDrawer() {
   const { t, language } = useLanguage();
   const {
-    items, restaurantId, restaurantName,
+    items, restaurantId, restaurantName, deliveryFee,
     isCartOpen, setIsCartOpen,
     removeItem, updateQuantity, clearCart,
     subtotal,
@@ -22,8 +21,6 @@ export default function CartDrawer() {
   const drawerRef = useRef(null);
   const backdropRef = useRef(null);
 
-  const restaurant = restaurantId ? getRestaurantById(restaurantId) : null;
-  const deliveryFee = restaurant?.deliveryFee || 0;
   const serviceFee = Math.round(subtotal * 0.03);
   const total = subtotal + deliveryFee + serviceFee;
 

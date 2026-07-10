@@ -662,6 +662,72 @@
   gap: 2rem;
 }
 
+/* Section label above grid ("Best picks near you") */
+.discover-section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.discover-section-label-icon {
+  font-size: 1rem;
+}
+
+/* Explore more restaurants button */
+.discover-explore-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out-quart);
+}
+
+.discover-explore-more:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-habesha-green);
+  color: var(--color-habesha-green);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 199, 89, 0.1);
+}
+
+.discover-explore-more:hover svg {
+  transform: translateY(2px);
+}
+
+.discover-explore-more svg {
+  transition: transform 0.2s;
+  opacity: 0.5;
+}
+
+.discover-explore-more-icon {
+  font-size: 1rem;
+}
+
+[data-theme="light"] .discover-explore-more {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .discover-explore-more:hover {
+  background: rgba(52, 199, 89, 0.05);
+}
+
 /* Results count */
 .discover-results-count {
   font-size: 0.8125rem;
@@ -1070,13 +1136,1059 @@
   text-overflow: ellipsis;
 }
 
-/* Responsive adjustments for App Layout */
+/* ============================================================
+   Location Status Bar
+   ============================================================ */
+
+.location-bar {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.65rem 0;
+}
+
+.location-bar-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.location-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.location-bar-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-habesha-blue);
+  animation: locPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes locPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+.location-bar-icon {
+  font-size: 0.9rem;
+}
+
+.location-bar-text {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.location-bar-text strong {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.location-bar-enable {
+  background: none;
+  border: none;
+  color: var(--color-habesha-blue);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+}
+
+.location-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.location-bar-count {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.25rem 0.75rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ============================================================
+   Smart Suggestions (AI Cards)
+   ============================================================ */
+
+.smart-suggestions {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1.25rem 2rem 0.5rem;
+}
+
+.smart-suggestions-header {
+  margin-bottom: 0.75rem;
+}
+
+.smart-suggestions-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.smart-suggestions-ai-badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 100px;
+  background: linear-gradient(135deg, rgba(252, 217, 0, 0.15), rgba(255, 69, 79, 0.15));
+  border: 1px solid rgba(252, 217, 0, 0.2);
+  color: var(--color-habesha-gold);
+  letter-spacing: 0.05em;
+}
+
+.smart-suggestions-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  margin: 0.2rem 0 0;
+}
+
+.smart-suggestions-scroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.25rem 0 0.75rem;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.smart-suggestions-scroll::-webkit-scrollbar { display: none; }
+
+.smart-card {
+  flex: 0 0 auto;
+  width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out-quart);
+  text-align: left;
+  color: inherit;
+  font-family: inherit;
+  scroll-snap-align: start;
+}
+
+.smart-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.smart-card-green { border-left: 3px solid var(--color-habesha-green); }
+.smart-card-gold { border-left: 3px solid var(--color-habesha-gold); }
+.smart-card-red { border-left: 3px solid var(--color-habesha-red); }
+.smart-card-blue { border-left: 3px solid var(--color-habesha-blue); }
+
+.smart-card-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.smart-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.smart-card-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.smart-card-subtitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.smart-card-detail {
+  font-size: 0.7rem;
+  color: var(--color-text-tertiary);
+}
+
+.smart-card-arrow {
+  font-size: 1.1rem;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.smart-card:hover .smart-card-arrow {
+  transform: translateX(3px);
+  color: var(--color-text-primary);
+}
+
+/* ============================================================
+   Price Compare
+   ============================================================ */
+
+.price-compare {
+  padding: 1.25rem 2rem 0.5rem;
+}
+
+.price-compare-header {
+  margin-bottom: 0.75rem;
+}
+
+.price-compare-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.price-compare-icon {
+  font-size: 1.1rem;
+}
+
+.price-compare-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  margin: 0.2rem 0 0;
+}
+
+.price-compare-dishes {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  scrollbar-width: none;
+}
+
+.price-compare-dishes::-webkit-scrollbar { display: none; }
+
+.price-dish-pill {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.price-dish-pill:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.price-dish-pill-active {
+  background: rgba(252, 217, 0, 0.1);
+  border-color: var(--color-habesha-gold);
+  color: var(--color-habesha-gold);
+}
+
+.price-compare-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.price-compare-row {
+  display: grid;
+  grid-template-columns: 40px 1fr auto 50px;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.price-compare-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.price-compare-best {
+  border-color: rgba(52, 199, 89, 0.3);
+  background: rgba(52, 199, 89, 0.04);
+}
+
+.price-compare-best:hover {
+  border-color: rgba(52, 199, 89, 0.5);
+  background: rgba(52, 199, 89, 0.08);
+}
+
+.price-compare-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.price-rank-badge {
+  font-size: 1.2rem;
+}
+
+.price-rank-num {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-tertiary);
+}
+
+.price-compare-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.price-compare-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.price-compare-dish {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.price-est-badge {
+  font-size: 0.6rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+}
+
+.price-compare-location {
+  font-size: 0.65rem;
+  color: var(--color-text-tertiary);
+}
+
+.price-compare-costs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  text-align: right;
+}
+
+.price-cost-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.price-cost-label {
+  color: var(--color-text-tertiary);
+}
+
+.price-cost-value {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-cost-total {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.15rem;
+  margin-top: 0.1rem;
+}
+
+.price-cost-total .price-cost-value {
+  color: var(--color-habesha-green);
+  font-weight: 800;
+}
+
+.price-compare-rating {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-habesha-gold);
+}
+
+.price-compare-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: 0.875rem;
+}
+
+.price-compare-more {
+  display: block;
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+  background: none;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--color-habesha-blue);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.price-compare-more:hover {
+  background: rgba(41, 151, 255, 0.05);
+  border-color: var(--color-habesha-blue);
+}
+
+/* ============================================================
+   Travel Modes (on restaurant cards)
+   ============================================================ */
+
+.travel-modes {
+  padding: 0.5rem 1rem 0.75rem;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-top: none;
+  border-radius: 0 0 20px 20px;
+  margin-top: -20px;
+  padding-top: 1.25rem;
+}
+
+.travel-distance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-habesha-blue);
+  margin-bottom: 0.35rem;
+}
+
+.travel-distance-icon {
+  font-size: 0.7rem;
+}
+
+.travel-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.travel-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  font-size: 0.65rem;
+  color: var(--color-text-secondary);
+}
+
+.travel-chip-icon {
+  font-size: 0.7rem;
+}
+
+.travel-chip-time {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.travel-chip-cost {
+  color: var(--color-text-tertiary);
+  padding-left: 0.15rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  margin-left: 0.15rem;
+}
+
+/* ============================================================
+   Split View Layout
+   ============================================================ */
+
+.discover-split-view {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  max-width: 1440px;
+  margin: 0 auto;
+  min-height: calc(100vh - 200px);
+}
+
+.discover-left-panel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.discover-map-container {
+  position: sticky;
+  top: 140px;
+  height: calc(100vh - 140px);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.discover-map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.discover-map-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.discover-map-skeleton {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-skeleton-pulse {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  animation: locPulse 1.5s ease-in-out infinite;
+}
+
+/* Map location prompt */
+.map-location-prompt {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: rgba(22, 25, 28, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.map-location-prompt-icon { font-size: 0.85rem; }
+
+/* ============================================================
+   Custom Map Markers — Vibrant Pin Design
+   ============================================================ */
+
+.map-marker {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.25s var(--ease-out-quart), filter 0.25s;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  z-index: 1;
+}
+
+.map-marker:hover {
+  transform: scale(1.2) translateY(-4px);
+  z-index: 20 !important;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
+}
+
+.map-marker-selected {
+  z-index: 15 !important;
+  transform: scale(1.15);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+}
+
+/* Pin shape: circle head + triangle tail */
+.map-marker-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.map-marker-pin-head {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.map-marker-selected .map-marker-pin-head {
+  width: 48px;
+  height: 48px;
+  border-width: 3.5px;
+}
+
+.map-marker-emoji {
+  font-size: 1.1rem;
+}
+
+.map-marker-selected .map-marker-emoji {
+  font-size: 1.3rem;
+}
+
+.map-marker-pin-tail {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid currentColor;
+  margin-top: -2px;
+}
+
+/* Name label tag under marker */
+.map-marker-label-tag {
+  margin-top: 2px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Top-rated star badge */
+.map-marker-star {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 0.7rem;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  z-index: 5;
+}
+
+/* Selected ring animation */
+.map-marker-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border: 2px solid var(--marker-color, #34c759);
+  border-radius: 50%;
+  animation: markerRing 1.5s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes markerRing {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+}
+
+/* ============================================================
+   Map Legend Panel
+   ============================================================ */
+
+.map-legend {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: rgba(22, 25, 28, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.6rem;
+  z-index: 10;
+  max-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.map-legend::-webkit-scrollbar { display: none; }
+
+.map-legend-title {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+  padding: 0 0.25rem 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 0.35rem;
+}
+
+.map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.35rem;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body);
+  color: var(--color-text-secondary);
+}
+
+.map-legend-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.map-legend-item-active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-primary);
+}
+
+.map-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.map-legend-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   Map Popups (Glassmorphic with Color Bar)
+   ============================================================ */
+
+.map-popup-wrapper .maplibregl-popup-content {
+  background: rgba(30, 34, 38, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 14px !important;
+  padding: 0 !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
+  overflow: hidden !important;
+}
+
+.map-popup-wrapper .maplibregl-popup-tip {
+  border-top-color: rgba(30, 34, 38, 0.95) !important;
+}
+
+.map-popup-wrapper .maplibregl-popup-close-button {
+  color: rgba(255, 255, 255, 0.5) !important;
+  font-size: 1.2rem !important;
+  right: 0.5rem !important;
+  top: 0.4rem !important;
+  z-index: 5 !important;
+}
+
+.map-popup-card {
+  min-width: 220px;
+}
+
+.map-popup-color-bar {
+  height: 4px;
+  width: 100%;
+}
+
+.map-popup-body {
+  padding: 0.75rem 1rem 0.85rem;
+}
+
+.map-popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.map-popup-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.map-popup-emoji {
+  font-size: 1rem;
+}
+
+.map-popup-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.map-popup-rating {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-habesha-gold);
+  background: rgba(252, 217, 0, 0.12);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.map-popup-location {
+  font-size: 0.7rem;
+  color: var(--color-text-tertiary);
+  margin: 0 0 0.15rem;
+}
+
+.map-popup-distance {
+  font-size: 0.7rem;
+  color: var(--color-habesha-blue);
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.map-popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.map-popup-price {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-habesha-green);
+}
+
+.map-popup-btn {
+  background: linear-gradient(135deg, var(--color-habesha-green), var(--color-habesha-gold));
+  border: none;
+  color: #000;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.35rem 0.75rem;
+  border-radius: 100px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.map-popup-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+/* ============================================================
+   User Location Marker (Enhanced)
+   ============================================================ */
+
+.map-user-marker {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.map-user-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: var(--color-habesha-blue);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgba(41, 151, 255, 0.6);
+  z-index: 3;
+}
+
+.map-user-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(41, 151, 255, 0.2);
+  border-radius: 50%;
+  animation: userPulse 2s ease-in-out infinite;
+  z-index: 1;
+}
+
+.map-user-pulse-2 {
+  animation-delay: 0.7s;
+  width: 50px;
+  height: 50px;
+  background: rgba(41, 151, 255, 0.1);
+}
+
+.map-user-label {
+  position: absolute;
+  top: calc(50% + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: var(--color-habesha-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  white-space: nowrap;
+  z-index: 4;
+}
+
+@keyframes userPulse {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+/* ============================================================
+   Mobile Map Toggle FAB
+   ============================================================ */
+
+.map-toggle-fab {
+  display: none;
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  z-index: 95;
+  background: rgba(30, 34, 38, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 100px;
+  padding: 0.65rem 1.1rem;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s;
+}
+
+.map-toggle-fab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.map-mobile-backdrop {
+  display: none;
+}
+
+/* Card highlight animation */
+.rc-card-highlighted {
+  animation: cardHighlight 2s ease;
+}
+
+@keyframes cardHighlight {
+  0% { box-shadow: 0 0 0 3px rgba(252, 217, 0, 0.6); }
+  100% { box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
+}
+
+/* ============================================================
+   Responsive — Split View & Map
+   ============================================================ */
+
+@media (min-width: 1280px) {
+  .discover-split-view {
+    grid-template-columns: 1fr 480px;
+  }
+}
+
 @media (max-width: 1024px) {
   .discover-split-view {
     grid-template-columns: 1fr;
   }
   .discover-map-container {
     display: none;
+  }
+  .discover-map-container.discover-map-mobile-show {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    height: 100vh;
+    border: none;
+  }
+  .map-toggle-fab {
+    display: flex;
+  }
+  .map-mobile-backdrop {
+    display: none;
+  }
+  .map-mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    background: transparent;
+  }
+  .discover-map-mobile-show + .map-mobile-backdrop,
+  .discover-map-container.discover-map-mobile-show ~ .map-mobile-backdrop {
+    display: block;
   }
 }
 
@@ -1379,6 +2491,91 @@
   border-color: rgba(0, 0, 0, 0.2);
 }
 
+/* Light Mode — Location Bar */
+[data-theme="light"] .location-bar {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .location-bar-count {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: rgba(15, 15, 15, 0.55);
+}
+
+/* Light Mode — Smart Suggestions */
+[data-theme="light"] .smart-card {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .smart-card:hover {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Light Mode — Price Compare */
+[data-theme="light"] .price-dish-pill {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: rgba(15, 15, 15, 0.75);
+}
+
+[data-theme="light"] .price-dish-pill:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .price-compare-row {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .price-compare-row:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .price-compare-best {
+  background: rgba(52, 199, 89, 0.06);
+  border-color: rgba(52, 199, 89, 0.2);
+}
+
+[data-theme="light"] .price-compare-more {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Light Mode — Travel Modes */
+[data-theme="light"] .travel-modes {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .travel-chip {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .travel-chip-cost {
+  border-left-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Light Mode — Map & FAB */
+[data-theme="light"] .discover-map-container {
+  border-left-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .map-toggle-fab {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f0f0f;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .map-location-prompt {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 [data-theme="light"] .empty-title {
   color: #0f0f0f;
 }
@@ -1386,6 +2583,7 @@
 [data-theme="light"] .empty-desc {
   color: rgba(15, 15, 15, 0.65);
 }
+
 
 [data-theme="light"] .cart-backdrop {
   background: rgba(255, 255, 255, 0.5);

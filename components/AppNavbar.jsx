@@ -84,31 +84,36 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
 
     const query = searchValue.toLowerCase();
     
-    // 1. Find matching restaurants
-    const matchedRestaurants = restaurants.filter(r => 
-      r.name.toLowerCase().includes(query) ||
-      r.cuisine.some(c => c.toLowerCase().includes(query)) ||
-      r.area.toLowerCase().includes(query)
-    ).map(r => ({
+    // 1. Find matching restaurants (handle both old format and DB format)
+    const matchedRestaurants = restaurants.filter(r => {
+      const cuisines = r.cuisine || r.cuisines || [];
+      const area = r.area || '';
+      return (
+        r.name.toLowerCase().includes(query) ||
+        cuisines.some(c => c.toLowerCase().includes(query)) ||
+        area.toLowerCase().includes(query)
+      );
+    }).map(r => ({
       type: 'restaurant',
-      id: r.id,
+      id: r.slug || r.id,
       name: r.name,
-      subtitle: `${r.cuisine.join(', ')} · ${r.area}`,
-      image: r.heroImage
+      subtitle: `${(r.cuisine || r.cuisines || []).join(', ')}${r.area ? ` · ${r.area}` : ''}`,
+      image: r.heroImage || r.hero_image_url || '/images/dish_injera.webp'
     }));
 
-    // 2. Find matching menu items (dishes)
+    // 2. Find matching menu items (only from legacy data with menu arrays)
     const matchedDishes = [];
     restaurants.forEach(r => {
+      if (!r.menu) return;
       r.menu.forEach(cat => {
-        cat.items.forEach(item => {
+        cat.items?.forEach(item => {
           if (item.name.toLowerCase().includes(query) && !matchedDishes.some(d => d.name === item.name)) {
             matchedDishes.push({
               type: 'dish',
               id: item.id,
               name: item.name,
               subtitle: `Signature dish at ${r.name}`,
-              restaurantId: r.id,
+              restaurantId: r.slug || r.id,
               image: item.image
             });
           }

@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
-import { getRestaurantById } from '@/lib/data';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, restaurantId, restaurantName, subtotal, clearCart } = useCart();
+  const { items, restaurantId, restaurantName, deliveryFee, subtotal, clearCart } = useCart();
 
   // Redirect to discover if cart is empty
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -37,8 +36,6 @@ export default function CheckoutPage() {
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoError, setPromoError] = useState('');
 
-  const restaurant = restaurantId ? getRestaurantById(restaurantId) : null;
-  const deliveryFee = restaurant?.deliveryFee || 0;
   const serviceFee = Math.round(subtotal * 0.03);
   
   let discount = 0;
@@ -191,7 +188,7 @@ export default function CheckoutPage() {
                 />
                 <div>
                   <span style={{ display: 'block', fontWeight: 700, fontSize: '0.9375rem' }}>🚀 ASAP Delivery</span>
-                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Arrives in {deliveryTime === 'asap' ? (restaurant?.deliveryTime || '30-40') : ''} mins</span>
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Arrives in {deliveryTime === 'asap' ? '30-45' : ''} mins</span>
                 </div>
               </label>
 
