@@ -508,6 +508,8 @@ export default function AdminPage({ params }) {
   const [deliverooUrl, setDeliverooUrl] = useState('');
   const [noonUrl, setNoonUrl] = useState('');
   const [careemUrl, setCareemUrl] = useState('');
+  const [ketaUrl, setKetaUrl] = useState('');
+  const [smilesUrl, setSmilesUrl] = useState('');
 
   const t = (key) => {
     return adminTranslations[language]?.[key] || adminTranslations['en']?.[key] || key;
@@ -591,6 +593,8 @@ export default function AdminPage({ params }) {
               deliverooUrl: b.deliveryPartners?.find(dp => dp.code === 'DELIVEROO')?.partnerUrl || '',
               noonUrl: b.deliveryPartners?.find(dp => dp.code === 'NOON')?.partnerUrl || '',
               careemUrl: b.deliveryPartners?.find(dp => dp.code === 'CAREEM')?.partnerUrl || '',
+              ketaUrl: b.deliveryPartners?.find(dp => dp.code === 'KEETA')?.partnerUrl || '',
+              smilesUrl: b.deliveryPartners?.find(dp => dp.code === 'SMILES')?.partnerUrl || '',
             }));
             setEditingBranches(mappedBranches);
 
@@ -600,6 +604,8 @@ export default function AdminPage({ params }) {
               setDeliverooUrl(primary.deliverooUrl || '');
               setNoonUrl(primary.noonUrl || '');
               setCareemUrl(primary.careemUrl || '');
+              setKetaUrl(primary.ketaUrl || '');
+              setSmilesUrl(primary.smilesUrl || '');
             }
           }
         }
@@ -664,7 +670,9 @@ export default function AdminPage({ params }) {
           { code: 'TALABAT', partnerUrl: talabatUrl },
           { code: 'DELIVEROO', partnerUrl: deliverooUrl },
           { code: 'NOON', partnerUrl: noonUrl },
-          { code: 'CAREEM', partnerUrl: careemUrl }
+          { code: 'CAREEM', partnerUrl: careemUrl },
+          { code: 'KEETA', partnerUrl: ketaUrl },
+          { code: 'SMILES', partnerUrl: smilesUrl }
         ]
       }] : undefined;
 
@@ -691,11 +699,15 @@ export default function AdminPage({ params }) {
             deliverooUrl,
             noonUrl,
             careemUrl,
+            ketaUrl,
+            smilesUrl,
             deliveryPartners: [
               { name: 'Talabat', code: 'TALABAT', partnerUrl: talabatUrl },
               { name: 'Deliveroo', code: 'DELIVEROO', partnerUrl: deliverooUrl },
               { name: 'Noon Food', code: 'NOON', partnerUrl: noonUrl },
-              { name: 'Careem Food', code: 'CAREEM', partnerUrl: careemUrl }
+              { name: 'Careem Food', code: 'CAREEM', partnerUrl: careemUrl },
+              { name: 'Keeta', code: 'KEETA', partnerUrl: ketaUrl },
+              { name: 'Smiles', code: 'SMILES', partnerUrl: smilesUrl }
             ].filter(dp => dp.partnerUrl.trim())
           } : b));
         }
@@ -782,7 +794,9 @@ export default function AdminPage({ params }) {
         { code: 'TALABAT', partnerUrl: branch.talabatUrl },
         { code: 'DELIVEROO', partnerUrl: branch.deliverooUrl },
         { code: 'NOON', partnerUrl: branch.noonUrl },
-        { code: 'CAREEM', partnerUrl: branch.careemUrl }
+        { code: 'CAREEM', partnerUrl: branch.careemUrl },
+        { code: 'KEETA', partnerUrl: branch.ketaUrl },
+        { code: 'SMILES', partnerUrl: branch.smilesUrl }
       ];
 
       const res = await fetch(`/api/restaurants/${slug}`, {
@@ -1241,6 +1255,24 @@ export default function AdminPage({ params }) {
                       placeholder="https://careem.com/..."
                     />
                   </div>
+                  <div className="admin-field">
+                    <label>Keeta URL</label>
+                    <input 
+                      type="text" 
+                      value={ketaUrl} 
+                      onChange={e => setKetaUrl(e.target.value)} 
+                      placeholder="https://keeta.ae/..."
+                    />
+                  </div>
+                  <div className="admin-field">
+                    <label>Smiles URL</label>
+                    <input 
+                      type="text" 
+                      value={smilesUrl} 
+                      onChange={e => setSmilesUrl(e.target.value)} 
+                      placeholder="https://www.smilesuae.ae/..."
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1572,7 +1604,7 @@ export default function AdminPage({ params }) {
                       <label>Talabat URL</label>
                       <input 
                         type="url" 
-                        value={branch.talabatUrl} 
+                        value={branch.talabatUrl || ''} 
                         onChange={e => handleUpdateBranchField(branch.id, 'talabatUrl', e.target.value)} 
                         placeholder="https://talabat.com/..."
                       />
@@ -1581,7 +1613,7 @@ export default function AdminPage({ params }) {
                       <label>Deliveroo URL</label>
                       <input 
                         type="url" 
-                        value={branch.deliverooUrl} 
+                        value={branch.deliverooUrl || ''} 
                         onChange={e => handleUpdateBranchField(branch.id, 'deliverooUrl', e.target.value)} 
                         placeholder="https://deliveroo.ae/..."
                       />
@@ -1590,7 +1622,7 @@ export default function AdminPage({ params }) {
                       <label>Noon Food URL</label>
                       <input 
                         type="url" 
-                        value={branch.noonUrl} 
+                        value={branch.noonUrl || ''} 
                         onChange={e => handleUpdateBranchField(branch.id, 'noonUrl', e.target.value)} 
                         placeholder="https://noon.com/..."
                       />
@@ -1599,9 +1631,27 @@ export default function AdminPage({ params }) {
                       <label>Careem Food URL</label>
                       <input 
                         type="url" 
-                        value={branch.careemUrl} 
+                        value={branch.careemUrl || ''} 
                         onChange={e => handleUpdateBranchField(branch.id, 'careemUrl', e.target.value)} 
                         placeholder="https://careem.com/..."
+                      />
+                    </div>
+                    <div className="admin-field">
+                      <label>Keeta URL</label>
+                      <input 
+                        type="url" 
+                        value={branch.ketaUrl || ''} 
+                        onChange={e => handleUpdateBranchField(branch.id, 'ketaUrl', e.target.value)} 
+                        placeholder="https://keeta.ae/..."
+                      />
+                    </div>
+                    <div className="admin-field">
+                      <label>Smiles URL</label>
+                      <input 
+                        type="url" 
+                        value={branch.smilesUrl || ''} 
+                        onChange={e => handleUpdateBranchField(branch.id, 'smilesUrl', e.target.value)} 
+                        placeholder="https://www.smilesuae.ae/..."
                       />
                     </div>
                   </div>

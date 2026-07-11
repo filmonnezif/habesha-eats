@@ -415,6 +415,8 @@ export default function RestaurantDetailPage({ params }) {
                             else if (dp.code === 'DELIVEROO') { brandColor = '#00CDBC'; emoji = '🦘'; brandName = 'Deliveroo'; }
                             else if (dp.code === 'NOON') { brandColor = '#e6cf00'; emoji = '🟡'; brandName = 'Noon Food'; }
                             else if (dp.code === 'CAREEM') { brandColor = '#47A248'; emoji = '💚'; brandName = 'Careem'; }
+                            else if (dp.code === 'KEETA') { brandColor = '#FFC107'; emoji = '🐱'; brandName = 'Keeta'; }
+                            else if (dp.code === 'SMILES') { brandColor = '#0073C6'; emoji = '😊'; brandName = 'Smiles'; }
 
                             return (
                               <a
