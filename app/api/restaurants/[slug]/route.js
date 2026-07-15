@@ -283,6 +283,6 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ success: true, restaurant });
   } catch (error) {
     console.error('Error updating restaurant:', error);
-    return NextResponse.json({ error: 'Failed to update restaurant' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update restaurant', details: error.message }, { status: 500 });
   }
 }
