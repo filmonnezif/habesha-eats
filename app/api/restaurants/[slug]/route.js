@@ -91,6 +91,7 @@ export async function GET(request, { params }) {
           .filter(item => item.category_id === cat.id)
           .map(item => ({
             id: item.id,
+            categoryId: item.category_id,
             name: item.name,
             description: item.description,
             price: parseFloat(item.price),

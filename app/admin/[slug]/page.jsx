@@ -879,7 +879,7 @@ export default function AdminPage({ params }) {
         const data = await res.json();
         setMenuData(prev => prev.map(cat =>
           cat.id === targetCategoryId
-            ? { ...cat, items: [...cat.items, { id: data.item.id, name: data.item.name, description: data.item.description, price: parseFloat(data.item.price), imageUrl: data.item.image_url, tags: data.item.tags || [], isAvailable: true }] }
+            ? { ...cat, items: [...cat.items, { id: data.item.id, categoryId: targetCategoryId, name: data.item.name, description: data.item.description, price: parseFloat(data.item.price), imageUrl: data.item.image_url, tags: data.item.tags || [], isAvailable: true }] }
             : cat
         ));
         setNewItemData({ categoryId: targetCategoryId, name: '', description: '', price: '', tags: '', imageUrl: '/images/dish_doro_wot.webp' });
