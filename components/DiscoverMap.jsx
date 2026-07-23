@@ -222,7 +222,13 @@ export default function DiscoverMap({
         const coords = getRestaurantCoords(r);
         if (!coords) return;
 
-        const isSelected = selectedRestaurant?.id === r.id || selectedRestaurant?.slug === r.slug;
+        const isSelected = selectedRestaurant && (selectedRestaurant.id === r.id || selectedRestaurant.slug === r.slug);
+
+        // Focus Mode: Hide all other restaurant markers when a restaurant is selected
+        if (selectedRestaurant && !isSelected) {
+          return;
+        }
+
         const color = MARKER_COLORS[idx % MARKER_COLORS.length];
         const rating = r.rating || 0;
         const emoji = getMarkerEmoji(r);
@@ -324,8 +330,9 @@ export default function DiscoverMap({
 
     const popup = new maplibreRef.current.Popup({
       offset: [0, -55],
-      closeButton: true,
+      closeButton: false,
       closeOnClick: false,
+      closeOnMove: false,
       className: 'map-popup-wrapper map-chip-popup',
       maxWidth: '320px',
     })
@@ -334,6 +341,25 @@ export default function DiscoverMap({
       .addTo(mapRef.current);
 
     popupRef.current = popup;
+
+    // Auto zoom out / fit bounds to ensure BOTH user location AND selected restaurant + popup chip are 100% visible
+    if (userLocation && coords && mapRef.current) {
+      try {
+        const maplibregl = maplibreRef.current;
+        const bounds = new maplibregl.LngLatBounds();
+        bounds.extend([userLocation.lng, userLocation.lat]);
+        bounds.extend([coords.lng, coords.lat]);
+
+        mapRef.current.fitBounds(bounds, {
+          padding: { top: 130, bottom: 90, left: 80, right: 80 },
+          maxZoom: 15,
+          duration: 900,
+          animate: true,
+        });
+      } catch (err) {
+        console.warn('fitBounds error:', err);
+      }
+    }
 
     setTimeout(() => {
       const btn = popup.getElement()?.querySelector('.map-popup-btn');
