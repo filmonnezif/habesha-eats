@@ -199,7 +199,7 @@ export default function DiscoverMap({
     `;
   }, []);
 
-  // Add/update restaurant markers
+  // 1. Add/update restaurant markers (Focus Mode when selectedRestaurant is set)
   useEffect(() => {
     if (!mapRef.current || !maplibreRef.current) return;
 
@@ -210,21 +210,13 @@ export default function DiscoverMap({
       markersRef.current.forEach(m => m.remove());
       markersRef.current = [];
 
-      if (popupRef.current) {
-        popupRef.current.remove();
-        popupRef.current = null;
-      }
-
-      const bounds = new maplibregl.LngLatBounds();
-      let hasPoints = false;
-
       restaurants.forEach((r, idx) => {
         const coords = getRestaurantCoords(r);
         if (!coords) return;
 
         const isSelected = selectedRestaurant && (selectedRestaurant.id === r.id || selectedRestaurant.slug === r.slug);
 
-        // Focus Mode: Hide all other restaurant markers when a restaurant is selected
+        // Focus Mode: Hide all unselected restaurant markers when a restaurant is selected
         if (selectedRestaurant && !isSelected) {
           return;
         }
@@ -232,7 +224,6 @@ export default function DiscoverMap({
         const color = MARKER_COLORS[idx % MARKER_COLORS.length];
         const rating = r.rating || 0;
         const emoji = getMarkerEmoji(r);
-        const initial = r.name.charAt(0).toUpperCase();
 
         // Create vibrant custom marker
         const el = document.createElement('div');
@@ -259,66 +250,51 @@ export default function DiscoverMap({
         el.addEventListener('click', (e) => {
           e.stopPropagation();
           onSelectRestaurant(r);
-
-          // Show popup
-          if (popupRef.current) popupRef.current.remove();
-          const dist = distances[r.id] || distances[r.slug];
-          const popup = new maplibregl.Popup({
-            offset: [0, -55],
-            closeButton: true,
-            closeOnClick: true,
-            className: 'map-popup-wrapper',
-            maxWidth: '320px',
-          })
-            .setLngLat([coords.lng, coords.lat])
-            .setHTML(createPopupHTML(r, dist, idx))
-            .addTo(mapRef.current);
-
-          popupRef.current = popup;
-
-          // Handle view menu button
-          setTimeout(() => {
-            const btn = popup.getElement()?.querySelector('.map-popup-btn');
-            if (btn) {
-              btn.addEventListener('click', () => {
-                window.location.href = `/restaurant/${r.slug || r.id}`;
-              });
-            }
-          }, 50);
         });
 
         markersRef.current.push(marker);
-        bounds.extend([coords.lng, coords.lat]);
-        hasPoints = true;
       });
-
-      // Add user location to bounds
-      if (userLocation) {
-        bounds.extend([userLocation.lng, userLocation.lat]);
-        hasPoints = true;
-      }
-
-      // Fit bounds to show all markers
-      if (hasPoints && restaurants.length > 0) {
-        try {
-          mapRef.current.fitBounds(bounds, {
-            padding: { top: 70, bottom: 70, left: 70, right: 70 },
-            maxZoom: 14,
-            duration: 1000,
-          });
-        } catch { /* bounds might be zero-area */ }
-      }
     };
 
-    // Wait for map to be ready
-    const timer = setTimeout(addMarkers, 500);
+    const timer = setTimeout(addMarkers, 300);
     return () => clearTimeout(timer);
-  }, [restaurants, selectedRestaurant, distances, userLocation, onSelectRestaurant, createPopupHTML]);
+  }, [restaurants, selectedRestaurant, onSelectRestaurant]);
 
-  // Open custom popup chip when selectedRestaurant or selectedDishInfo updates
+  // 2. Selection, Persistent Popup & Camera Controller
   useEffect(() => {
-    if (!mapRef.current || !maplibreRef.current || !selectedRestaurant) return;
+    if (!mapRef.current || !mapReady.current || !maplibreRef.current) return;
+    const maplibregl = maplibreRef.current;
 
+    const routeSource = mapRef.current.getSource('route-line');
+    const labelSource = mapRef.current.getSource('route-label');
+
+    // Case A: No restaurant selected — fit bounds for all markers & clear route/popup
+    if (!selectedRestaurant) {
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+      if (routeSource) routeSource.setData({ type: 'FeatureCollection', features: [] });
+      if (labelSource) labelSource.setData({ type: 'FeatureCollection', features: [] });
+
+      if (restaurants.length > 0) {
+        const bounds = new maplibregl.LngLatBounds();
+        let hasPoints = false;
+        restaurants.forEach(r => {
+          const coords = getRestaurantCoords(r);
+          if (coords) { bounds.extend([coords.lng, coords.lat]); hasPoints = true; }
+        });
+        if (userLocation) { bounds.extend([userLocation.lng, userLocation.lat]); hasPoints = true; }
+        if (hasPoints) {
+          try {
+            mapRef.current.fitBounds(bounds, { padding: { top: 70, bottom: 70, left: 70, right: 70 }, maxZoom: 14, duration: 800 });
+          } catch { /* ignore */ }
+        }
+      }
+      return;
+    }
+
+    // Case B: Restaurant IS selected — show persistent popup, draw route, and fit bounds ONCE
     const coords = getRestaurantCoords(selectedRestaurant);
     if (!coords) return;
 
@@ -326,9 +302,9 @@ export default function DiscoverMap({
     const colorIdx = idx >= 0 ? idx : 0;
     const dist = distances[selectedRestaurant.id] || distances[selectedRestaurant.slug] || (userLocation ? haversineDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng) : null);
 
+    // Show persistent popup (does not close on click or move)
     if (popupRef.current) popupRef.current.remove();
-
-    const popup = new maplibreRef.current.Popup({
+    const popup = new maplibregl.Popup({
       offset: [0, -55],
       closeButton: false,
       closeOnClick: false,
@@ -342,25 +318,6 @@ export default function DiscoverMap({
 
     popupRef.current = popup;
 
-    // Auto zoom out / fit bounds to ensure BOTH user location AND selected restaurant + popup chip are 100% visible
-    if (userLocation && coords && mapRef.current) {
-      try {
-        const maplibregl = maplibreRef.current;
-        const bounds = new maplibregl.LngLatBounds();
-        bounds.extend([userLocation.lng, userLocation.lat]);
-        bounds.extend([coords.lng, coords.lat]);
-
-        mapRef.current.fitBounds(bounds, {
-          padding: { top: 130, bottom: 90, left: 80, right: 80 },
-          maxZoom: 15,
-          duration: 900,
-          animate: true,
-        });
-      } catch (err) {
-        console.warn('fitBounds error:', err);
-      }
-    }
-
     setTimeout(() => {
       const btn = popup.getElement()?.querySelector('.map-popup-btn');
       if (btn) {
@@ -373,18 +330,65 @@ export default function DiscoverMap({
       }
     }, 50);
 
+    // Draw route path if userLocation is available
+    if (userLocation && routeSource) {
+      const startLng = userLocation.lng;
+      const startLat = userLocation.lat;
+      const endLng = coords.lng;
+      const endLat = coords.lat;
+
+      const numPoints = 40;
+      const pathCoords = [];
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const midOffset = Math.sin(t * Math.PI) * 0.003;
+        const lat = startLat + (endLat - startLat) * t + midOffset * (endLng - startLng > 0 ? 1 : -1);
+        const lng = startLng + (endLng - startLng) * t - midOffset * (endLat - startLat > 0 ? -1 : 1);
+        pathCoords.push([lng, lat]);
+      }
+
+      routeSource.setData({
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', geometry: { type: 'LineString', coordinates: pathCoords } }],
+      });
+
+      const distKm = haversineDistance(startLat, startLng, endLat, endLng);
+      const midIdx = Math.floor(numPoints / 2);
+      if (labelSource) {
+        labelSource.setData({
+          type: 'FeatureCollection',
+          features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: pathCoords[midIdx] }, properties: { label: `${distKm.toFixed(1)} km` } }],
+        });
+      }
+
+      // Smooth camera fit bounds ONCE to frame both userLocation and selectedRestaurant + popup chip
+      const bounds = new maplibregl.LngLatBounds();
+      bounds.extend([startLng, startLat]);
+      bounds.extend([endLng, endLat]);
+      try {
+        mapRef.current.fitBounds(bounds, {
+          padding: { top: 130, bottom: 90, left: 80, right: 80 },
+          maxZoom: 15,
+          duration: 900,
+          animate: true,
+        });
+      } catch { /* ignore */ }
+    } else {
+      // If no user location, just fly to restaurant
+      try {
+        mapRef.current.flyTo({ center: [coords.lng, coords.lat], zoom: 14, duration: 800 });
+      } catch { /* ignore */ }
+    }
+
   }, [selectedRestaurant, selectedDishInfo, restaurants, distances, userLocation, createPopupHTML]);
 
-  // Add/update user location marker
+  // 3. User location marker
   useEffect(() => {
     if (!mapRef.current || !maplibreRef.current || !userLocation) return;
 
     const addUserMarker = () => {
       const maplibregl = maplibreRef.current;
-
-      if (userMarkerRef.current) {
-        userMarkerRef.current.remove();
-      }
+      if (userMarkerRef.current) userMarkerRef.current.remove();
 
       const el = document.createElement('div');
       el.className = 'map-user-marker';
@@ -403,98 +407,6 @@ export default function DiscoverMap({
     const timer = setTimeout(addUserMarker, 600);
     return () => clearTimeout(timer);
   }, [userLocation]);
-
-  // Draw animated route path from user to selected restaurant
-  useEffect(() => {
-    if (!mapRef.current || !mapReady.current || !maplibreRef.current) return;
-
-    const routeSource = mapRef.current.getSource('route-line');
-    const labelSource = mapRef.current.getSource('route-label');
-    if (!routeSource) return;
-
-    if (!selectedRestaurant || !userLocation) {
-      routeSource.setData({ type: 'FeatureCollection', features: [] });
-      if (labelSource) labelSource.setData({ type: 'FeatureCollection', features: [] });
-      return;
-    }
-
-    const coords = getRestaurantCoords(selectedRestaurant);
-    if (!coords) {
-      routeSource.setData({ type: 'FeatureCollection', features: [] });
-      if (labelSource) labelSource.setData({ type: 'FeatureCollection', features: [] });
-      return;
-    }
-
-    // Generate a curved path (bezier-ish) between user and restaurant
-    const startLng = userLocation.lng;
-    const startLat = userLocation.lat;
-    const endLng = coords.lng;
-    const endLat = coords.lat;
-
-    // Create a series of intermediate points for a gentle curve
-    const numPoints = 40;
-    const pathCoords = [];
-    for (let i = 0; i <= numPoints; i++) {
-      const t = i / numPoints;
-      // Add a slight arc perpendicular to the line
-      const midOffset = Math.sin(t * Math.PI) * 0.003; // Curve intensity
-      const lat = startLat + (endLat - startLat) * t + midOffset * (endLng - startLng > 0 ? 1 : -1);
-      const lng = startLng + (endLng - startLng) * t - midOffset * (endLat - startLat > 0 ? -1 : 1);
-      pathCoords.push([lng, lat]);
-    }
-
-    routeSource.setData({
-      type: 'FeatureCollection',
-      features: [{
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: pathCoords,
-        },
-      }],
-    });
-
-    // Distance label at midpoint
-    const dist = haversineDistance(startLat, startLng, endLat, endLng);
-    const midIdx = Math.floor(numPoints / 2);
-    const midCoord = pathCoords[midIdx];
-    if (labelSource) {
-      labelSource.setData({
-        type: 'FeatureCollection',
-        features: [{
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: midCoord },
-          properties: { label: `${dist.toFixed(1)} km` },
-        }],
-      });
-    }
-
-    // Animate dash offset for flow effect
-    let dashOffset = 0;
-    const animateDash = () => {
-      if (!mapRef.current) return;
-      dashOffset = (dashOffset + 0.2) % 6;
-      try {
-        mapRef.current.setPaintProperty('route-line-dash', 'line-dasharray', [2, 4]);
-      } catch { /* ignore */ }
-    };
-    const dashInterval = setInterval(animateDash, 100);
-
-    // Pan to show both user and restaurant
-    try {
-      const maplibregl = maplibreRef.current;
-      const bounds = new maplibregl.LngLatBounds();
-      bounds.extend([startLng, startLat]);
-      bounds.extend([endLng, endLat]);
-      mapRef.current.fitBounds(bounds, {
-        padding: { top: 90, bottom: 90, left: 90, right: 90 },
-        maxZoom: 14,
-        duration: 800,
-      });
-    } catch { /* ignore */ }
-
-    return () => clearInterval(dashInterval);
-  }, [selectedRestaurant, userLocation]);
 
   return (
     <div className="discover-map-wrapper" id="discover-map">
