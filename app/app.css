@@ -3084,6 +3084,41 @@
   gap: 0.35rem;
 }
 
+/* Custom Dish Price Chip in Map Popup */
+.map-popup-dish-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  margin: 0.4rem 0 0.5rem;
+  background: rgba(252, 217, 0, 0.08);
+  border: 1px solid rgba(252, 217, 0, 0.25);
+  border-radius: 8px;
+}
+
+.map-popup-dish-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-habesha-gold, #fcd900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.map-popup-dish-price {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: rgba(52, 199, 89, 0.25);
+  border: 1px solid rgba(52, 199, 89, 0.4);
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .map-popup-emoji {
   font-size: 1rem;
 }

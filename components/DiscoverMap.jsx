@@ -40,6 +40,7 @@ export default function DiscoverMap({
   restaurants = [],
   userLocation = null,
   selectedRestaurant = null,
+  selectedDishInfo = null,
   onSelectRestaurant = () => {},
   distances = {},
 }) {
@@ -157,8 +158,8 @@ export default function DiscoverMap({
     };
   }, []);
 
-  // Create popup HTML
-  const createPopupHTML = useCallback((restaurant, dist, colorIdx) => {
+  // Create popup HTML (supports custom dish price chip)
+  const createPopupHTML = useCallback((restaurant, dist, colorIdx, dishInfo = null) => {
     const rating = restaurant.rating || 0;
     const priceRange = restaurant.priceRange || restaurant.price_range || '$$';
     const emirate = restaurant.emirate || '';
@@ -167,9 +168,12 @@ export default function DiscoverMap({
     const color = MARKER_COLORS[colorIdx % MARKER_COLORS.length];
     const emoji = getMarkerEmoji(restaurant);
 
+    const dishName = dishInfo?.dishName || restaurant.dishName || '';
+    const dishPrice = dishInfo?.price || restaurant.dishPrice || null;
+
     return `
-      <div class="map-popup-card">
-        <div class="map-popup-color-bar" style="background:${color.bg}"></div>
+      <div class="map-popup-card ${dishName ? 'map-popup-chip-card' : ''}">
+        <div class="map-popup-color-bar" style="background:${dishName ? 'var(--color-habesha-gold, #fcd900)' : color.bg}"></div>
         <div class="map-popup-body">
           <div class="map-popup-header">
             <div class="map-popup-name-row">
@@ -178,11 +182,17 @@ export default function DiscoverMap({
             </div>
             ${rating > 0 ? `<span class="map-popup-rating">⭐ ${rating}</span>` : ''}
           </div>
+          ${dishName ? `
+            <div class="map-popup-dish-chip">
+              <span class="map-popup-dish-name">🍲 ${dishName}</span>
+              ${dishPrice ? `<span class="map-popup-dish-price">AED ${dishPrice}</span>` : ''}
+            </div>
+          ` : ''}
           <p class="map-popup-location">${emirate}${area ? ' · ' + area : ''}</p>
           ${distText ? `<p class="map-popup-distance">📍 ${distText}</p>` : ''}
           <div class="map-popup-footer">
             <span class="map-popup-price">${priceRange}</span>
-            <button class="map-popup-btn" data-slug="${restaurant.slug || restaurant.id}">View Menu →</button>
+            <button class="map-popup-btn" data-slug="${restaurant.slug || restaurant.id}" data-dish="${dishName}">View Menu →</button>
           </div>
         </div>
       </div>
@@ -298,6 +308,46 @@ export default function DiscoverMap({
     const timer = setTimeout(addMarkers, 500);
     return () => clearTimeout(timer);
   }, [restaurants, selectedRestaurant, distances, userLocation, onSelectRestaurant, createPopupHTML]);
+
+  // Open custom popup chip when selectedRestaurant or selectedDishInfo updates
+  useEffect(() => {
+    if (!mapRef.current || !maplibreRef.current || !selectedRestaurant) return;
+
+    const coords = getRestaurantCoords(selectedRestaurant);
+    if (!coords) return;
+
+    const idx = restaurants.findIndex(r => r.id === selectedRestaurant.id || r.slug === selectedRestaurant.slug);
+    const colorIdx = idx >= 0 ? idx : 0;
+    const dist = distances[selectedRestaurant.id] || distances[selectedRestaurant.slug] || (userLocation ? haversineDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng) : null);
+
+    if (popupRef.current) popupRef.current.remove();
+
+    const popup = new maplibreRef.current.Popup({
+      offset: [0, -55],
+      closeButton: true,
+      closeOnClick: false,
+      className: 'map-popup-wrapper map-chip-popup',
+      maxWidth: '320px',
+    })
+      .setLngLat([coords.lng, coords.lat])
+      .setHTML(createPopupHTML(selectedRestaurant, dist, colorIdx, selectedDishInfo))
+      .addTo(mapRef.current);
+
+    popupRef.current = popup;
+
+    setTimeout(() => {
+      const btn = popup.getElement()?.querySelector('.map-popup-btn');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const slug = selectedRestaurant.slug || selectedRestaurant.id;
+          const dName = selectedDishInfo?.dishName || '';
+          const url = dName ? `/restaurant/${slug}?dish=${encodeURIComponent(dName)}` : `/restaurant/${slug}`;
+          window.location.href = url;
+        });
+      }
+    }, 50);
+
+  }, [selectedRestaurant, selectedDishInfo, restaurants, distances, userLocation, createPopupHTML]);
 
   // Add/update user location marker
   useEffect(() => {

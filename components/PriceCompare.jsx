@@ -20,6 +20,7 @@ export default function PriceCompare({
   restaurants = [],
   userLocation = null,
   onSelectRestaurant = () => {},
+  onExpandRowRestaurant = () => {},
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -433,7 +434,10 @@ export default function PriceCompare({
               >
                 <button
                   className="price-compare-row-main"
-                  onClick={() => toggleRow(item.id)}
+                  onClick={() => {
+                    toggleRow(item.id);
+                    onExpandRowRestaurant(item.restaurant, { dishName: item.dishName, price: item.dishPrice });
+                  }}
                 >
                   {/* Rank */}
                   <div className="price-compare-rank">

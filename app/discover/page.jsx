@@ -123,6 +123,7 @@ function DiscoverContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [dbRestaurants, setDbRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [selectedDishInfo, setSelectedDishInfo] = useState(null);
   const [showMap, setShowMap] = useState(false);
   const [activeTab, setActiveTab] = useState('suggestions');
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
@@ -317,6 +318,15 @@ function DiscoverContent() {
     router.push(url);
   }, [router]);
 
+  // Handle row expansion in PriceCompare — focuses map on restaurant and passes dish info WITHOUT navigating away
+  const handleExpandRowRestaurant = useCallback((restaurant, dishInfo = null) => {
+    if (!restaurant) return;
+    setSelectedRestaurant(restaurant);
+    if (dishInfo) {
+      setSelectedDishInfo(dishInfo);
+    }
+  }, []);
+
   const extendedSortOptions = [
     ...SORT_OPTIONS,
     ...(userLocation ? [{ value: 'nearest', label: 'Nearest First' }] : []),
@@ -472,6 +482,7 @@ function DiscoverContent() {
                     restaurants={dbRestaurants}
                     userLocation={userLocation}
                     onSelectRestaurant={handleSelectRestaurant}
+                    onExpandRowRestaurant={handleExpandRowRestaurant}
                   />
                 </div>
               </div>
@@ -549,6 +560,7 @@ function DiscoverContent() {
             restaurants={displayRestaurants}
             userLocation={userLocation}
             selectedRestaurant={selectedRestaurant}
+            selectedDishInfo={selectedDishInfo}
             onSelectRestaurant={handleSelectRestaurant}
             distances={distances}
           />
