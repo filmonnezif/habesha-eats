@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, use, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AppNavbar from '@/components/AppNavbar';
 import CartDrawer from '@/components/CartDrawer';
 import ItemCustomizationModal from '@/components/ItemCustomizationModal';
@@ -16,6 +17,8 @@ gsap.registerPlugin(ScrollTrigger);
 export default function RestaurantDetailPage({ params }) {
   const resolvedParams = use(params);
   const restaurantSlug = resolvedParams.id;
+  const searchParams = useSearchParams();
+  const targetDishQuery = searchParams.get('dish') || searchParams.get('highlight') || '';
   const { t } = useLanguage();
 
   const { items, addItem, totalItems, subtotal, restaurantName } = useCart();
@@ -33,17 +36,53 @@ export default function RestaurantDetailPage({ params }) {
   const heroBgRef = useRef(null);
 
   // Fetch restaurant data from API
+  // Fetch restaurant data — with sessionStorage cache for instant revisits
   useEffect(() => {
+    const CACHE_KEY = `restaurant_${restaurantSlug}`;
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    function applyData(data) {
+      setRestaurant(data);
+      if (data.menu && data.menu.length > 0) {
+        setActiveMenuCategory(data.menu[0].id);
+        setActiveTab('menu');
+      }
+    }
+
+    // Try sessionStorage cache first for instant display
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL) {
+          applyData(data);
+          setLoading(false);
+          // Still revalidate in background (stale-while-revalidate pattern)
+          fetch(`/api/restaurants/${restaurantSlug}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(freshData => {
+              if (freshData) {
+                applyData(freshData);
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: freshData, timestamp: Date.now() }));
+              }
+            })
+            .catch(() => {}); // silent — we already have cached data
+          return;
+        }
+      }
+    } catch {}
+
+    // No cache — fetch from API
     async function fetchRestaurant() {
       try {
         const res = await fetch(`/api/restaurants/${restaurantSlug}`);
         if (res.ok) {
           const data = await res.json();
-          setRestaurant(data);
-          if (data.menu && data.menu.length > 0) {
-            setActiveMenuCategory(data.menu[0].id);
-            setActiveTab('menu');
-          }
+          applyData(data);
+          // Cache in sessionStorage
+          try {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+          } catch {}
         }
       } catch (err) {
         console.error('Failed to fetch restaurant:', err);
@@ -53,6 +92,55 @@ export default function RestaurantDetailPage({ params }) {
     }
     fetchRestaurant();
   }, [restaurantSlug]);
+
+  // Handle auto-scroll and highlight for target dish query (e.g. ?dish=shiro)
+  useEffect(() => {
+    if (!restaurant || !targetDishQuery.trim()) return;
+
+    const query = targetDishQuery.trim().toLowerCase();
+    setActiveTab('menu');
+
+    let foundCategory = null;
+    let targetItemId = null;
+
+    (restaurant.menu || []).forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if (!targetItemId && item.name.toLowerCase().includes(query)) {
+          foundCategory = cat.id;
+          targetItemId = item.id;
+        }
+      });
+    });
+
+    if (foundCategory) {
+      setActiveMenuCategory(foundCategory);
+    }
+
+    const timer = setTimeout(() => {
+      let el = null;
+      if (targetItemId) {
+        el = document.querySelector(`[data-dish-id="${targetItemId}"]`);
+      }
+      if (!el && query) {
+        const allItemEls = document.querySelectorAll('.rd-menu-item');
+        for (const itemEl of allItemEls) {
+          const name = itemEl.getAttribute('data-dish-name') || '';
+          if (name.toLowerCase().includes(query)) {
+            el = itemEl;
+            break;
+          }
+        }
+      }
+
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('rd-item-highlighted');
+        setTimeout(() => el.classList.remove('rd-item-highlighted'), 3500);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [restaurant, targetDishQuery]);
 
   // GSAP Parallax scroll on hero background
   useEffect(() => {
@@ -257,7 +345,7 @@ export default function RestaurantDetailPage({ params }) {
                   <h2 className="rd-menu-category-title">{cat.name}</h2>
                   <div className="rd-menu-grid">
                     {cat.items.map((item) => (
-                      <div key={item.id} className="rd-menu-item">
+                      <div key={item.id} className="rd-menu-item" data-dish-id={item.id} data-dish-name={item.name}>
                         {item.imageUrl && (
                           <img src={item.imageUrl} alt={item.name} className="rd-menu-item-img" />
                         )}

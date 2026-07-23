@@ -8,46 +8,42 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Fetch restaurants with their type
-    const restaurants = await sql`
-      SELECT 
-        r.id, r.name, r.slug, r.description, r.logo_url, r.website_url, 
-        r.email, r.status, r.hero_image_url, r.rating, r.review_count,
-        r.price_range, r.tagline,
-        rt.name as type_name, rt.code as type_code
-      FROM restaurants r
-      JOIN restaurant_types rt ON r.restaurant_type_id = rt.id
-      WHERE r.deleted_at IS NULL
-      ORDER BY r.name
-    `;
-
-    // Fetch all branches
-    const branches = await sql`
-      SELECT 
-        b.id, b.restaurant_id, b.name, b.slug, b.area, b.address,
-        b.phone, b.whatsapp_number, b.whatsapp_url, b.google_maps_url,
-        b.latitude, b.longitude, b.email, b.description,
-        b.accepts_dine_in, b.accepts_delivery, b.status, b.is_featured,
-        e.name as emirate_name, e.code as emirate_code
-      FROM branches b
-      JOIN emirates e ON b.emirate_id = e.id
-      WHERE b.deleted_at IS NULL
-      ORDER BY b.name
-    `;
-
-    // Fetch all restaurant-cuisine mappings
-    const cuisineMappings = await sql`
-      SELECT rc.restaurant_id, c.name as cuisine_name, c.code as cuisine_code
-      FROM restaurant_cuisines rc
-      JOIN cuisines c ON rc.cuisine_id = c.id
-    `;
-
-    // Fetch all social links
-    const socialLinks = await sql`
-      SELECT rsl.restaurant_id, sp.name as platform_name, sp.code as platform_code, rsl.url
-      FROM restaurant_social_links rsl
-      JOIN social_platforms sp ON rsl.social_platform_id = sp.id
-    `;
+    // Fetch all queries in parallel to eliminate waterfall latency
+    const [restaurants, branches, cuisineMappings, socialLinks] = await Promise.all([
+      sql`
+        SELECT 
+          r.id, r.name, r.slug, r.description, r.logo_url, r.website_url, 
+          r.email, r.status, r.hero_image_url, r.rating, r.review_count,
+          r.price_range, r.tagline,
+          rt.name as type_name, rt.code as type_code
+        FROM restaurants r
+        JOIN restaurant_types rt ON r.restaurant_type_id = rt.id
+        WHERE r.deleted_at IS NULL
+        ORDER BY r.name
+      `,
+      sql`
+        SELECT 
+          b.id, b.restaurant_id, b.name, b.slug, b.area, b.address,
+          b.phone, b.whatsapp_number, b.whatsapp_url, b.google_maps_url,
+          b.latitude, b.longitude, b.email, b.description,
+          b.accepts_dine_in, b.accepts_delivery, b.status, b.is_featured,
+          e.name as emirate_name, e.code as emirate_code
+        FROM branches b
+        JOIN emirates e ON b.emirate_id = e.id
+        WHERE b.deleted_at IS NULL
+        ORDER BY b.name
+      `,
+      sql`
+        SELECT rc.restaurant_id, c.name as cuisine_name, c.code as cuisine_code
+        FROM restaurant_cuisines rc
+        JOIN cuisines c ON rc.cuisine_id = c.id
+      `,
+        sql`
+        SELECT rsl.restaurant_id, sp.name as platform_name, sp.code as platform_code, rsl.url
+        FROM restaurant_social_links rsl
+        JOIN social_platforms sp ON rsl.social_platform_id = sp.id
+      `,
+    ]);
 
     // Assemble the full restaurant objects
     const result = restaurants.map(r => {
@@ -104,10 +100,18 @@ export async function GET() {
         area: primaryBranch?.area || '',
         phone: primaryBranch?.phone?.trim() || '',
         googleMapsUrl: primaryBranch?.google_maps_url || '',
+        coordinates: primaryBranch?.latitude && primaryBranch?.longitude ? {
+          lat: parseFloat(primaryBranch.latitude),
+          lng: parseFloat(primaryBranch.longitude),
+        } : null,
       };
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Error fetching restaurants:', error);
     return NextResponse.json({ error: 'Failed to fetch restaurants' }, { status: 500 });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense, useRef, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { gsap } from 'gsap';
 import dynamic from 'next/dynamic';
 import AppNavbar from '@/components/AppNavbar';
@@ -14,6 +14,11 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { getUserLocation, reverseGeocode, haversineDistance, getRestaurantCoords, getTravelModes } from '@/lib/geo';
 import { EMIRATES, SORT_OPTIONS, restaurants as hardcodedRestaurants } from '@/lib/data';
 import Link from 'next/link';
+import {
+  Search, MapPin, Flame, Star, Sparkles, ChevronDown, ChevronUp,
+  UtensilsCrossed, Leaf, Sprout, Coffee, Brain, DollarSign,
+  Trophy, ShoppingCart, Globe, Navigation, X, SlidersHorizontal
+} from 'lucide-react';
 
 // Dynamic import for map (heavy WebGL dependency)
 const DiscoverMap = dynamic(() => import('@/components/DiscoverMap'), {
@@ -21,81 +26,24 @@ const DiscoverMap = dynamic(() => import('@/components/DiscoverMap'), {
   loading: () => <div className="discover-map-skeleton"><div className="map-skeleton-pulse" /></div>,
 });
 
-/* ───────── Custom Dropdown (reused) ───────── */
-function CustomDropdown({ value, onChange, options, ariaLabel, showLocationPin = false }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+/* ───────── Animated placeholder for hero search ───────── */
+const SEARCH_PLACEHOLDERS = [
+  'Search Ethiopian cuisine...',
+  'Find injera near you...',
+  'Try tibs, shiro, kitfo...',
+  'Discover authentic flavors...',
+  'Craving something delicious?',
+];
 
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
-
-  const selectedOpt = options.find(opt => opt.value === value);
-
-  return (
-    <div ref={dropdownRef} className="custom-dropdown">
-      <button
-        type="button"
-        className="custom-dropdown-trigger"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-label={ariaLabel}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          {showLocationPin && <span style={{ opacity: 0.95, fontSize: '0.95rem' }}>📍</span>}
-          <span>{selectedOpt ? selectedOpt.label : value}</span>
-        </span>
-        <svg
-          className="custom-dropdown-chevron"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-
-      {isOpen && (
-        <ul role="listbox" className="custom-dropdown-menu">
-          {options.map((opt) => (
-            <li
-              key={opt.value}
-              role="option"
-              aria-selected={opt.value === value}
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-              className={`custom-dropdown-option ${opt.value === value ? 'selected' : ''}`}
-            >
-              {opt.label}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-/* ───────── Travel Mode Chips ───────── */
+/* ───────── Travel Modes Component ───────── */
 function TravelModes({ restaurant, userLocation }) {
   const travelInfo = userLocation ? getTravelModes(restaurant, userLocation.lat, userLocation.lng) : null;
-
   if (!travelInfo || !travelInfo.distance) return null;
 
   return (
     <div className="travel-modes">
       <div className="travel-distance-badge">
-        <span className="travel-distance-icon">📍</span>
+        <Navigation size={12} />
         <span>{travelInfo.distance.toFixed(1)} km</span>
       </div>
       <div className="travel-chips">
@@ -107,6 +55,57 @@ function TravelModes({ restaurant, userLocation }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ───────── Custom Dropdown Component ───────── */
+function CustomDropdown({ options, value, onChange, icon: Icon, label }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (option) => {
+    onChange(option);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="custom-dropdown" ref={dropdownRef}>
+      <button
+        className="custom-dropdown-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        {Icon && <Icon size={14} />}
+        <span>{value}</span>
+        {isOpen ? <ChevronUp size={14} className="custom-dropdown-chevron" /> : <ChevronDown size={14} className="custom-dropdown-chevron" />}
+      </button>
+      {isOpen && (
+        <ul className="custom-dropdown-menu" role="listbox">
+          {options.map((option) => (
+            <li
+              key={option}
+              className={`custom-dropdown-option ${value === option ? 'selected' : ''}`}
+              role="option"
+              aria-selected={value === option}
+              onClick={() => handleSelect(option)}
+            >
+              {option}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -124,43 +123,58 @@ function DiscoverContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [dbRestaurants, setDbRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const [showMap, setShowMap] = useState(false); // Mobile map toggle
+  const [showMap, setShowMap] = useState(false);
+  const [activeTab, setActiveTab] = useState('suggestions');
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [placeholderText, setPlaceholderText] = useState(SEARCH_PLACEHOLDERS[0]);
 
   // Geolocation state
   const [userLocation, setUserLocation] = useState(null);
   const [locationName, setLocationName] = useState(null);
-  const [locationStatus, setLocationStatus] = useState('idle'); // idle | loading | granted | denied
+  const [locationStatus, setLocationStatus] = useState('idle');
   const [distances, setDistances] = useState({});
 
   const { totalItems, subtotal, restaurantName } = useCart();
-  const selectedCardRef = useRef(null);
+  const heroSearchRef = useRef(null);
 
-  // Fetch restaurants from database
+  // Animated placeholder cycling
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIdx(prev => {
+        const next = (prev + 1) % SEARCH_PLACEHOLDERS.length;
+        const input = heroSearchRef.current?.querySelector('.hero-search-input');
+        if (input) {
+          gsap.to(input, { opacity: 0, duration: 0.15, onComplete: () => {
+            setPlaceholderText(SEARCH_PLACEHOLDERS[next]);
+            gsap.to(input, { opacity: 1, duration: 0.15 });
+          }});
+        }
+        return next;
+      });
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch restaurants from database (fallback to hardcoded on error)
   useEffect(() => {
     async function fetchRestaurants() {
       try {
         const res = await fetch('/api/restaurants');
-        if (res.ok) {
-          const data = await res.json();
-          // Merge hardcoded data (coordinates, menu, deliveryFee, etc.)
-          const merged = data.map(dbR => {
-            const hc = hardcodedRestaurants.find(hr => hr.slug === dbR.slug || hr.id === dbR.slug);
-            if (hc) {
-              return {
-                ...dbR,
-                coordinates: hc.coordinates,
-                deliveryFee: dbR.deliveryFee ?? hc.deliveryFee,
-                deliveryTime: dbR.deliveryTime ?? hc.deliveryTime,
-                menu: hc.menu,
-              };
-            }
-            return dbR;
-          });
-          setDbRestaurants(merged);
-        }
+        if (!res.ok) throw new Error(`API returned ${res.status}`);
+        const data = await res.json();
+        const merged = data.map(dbR => {
+          const hc = hardcodedRestaurants.find(hr => hr.slug === dbR.slug || hr.id === dbR.slug);
+          const coords = getRestaurantCoords(dbR);
+          return {
+            ...dbR,
+            coordinates: coords,
+            emirate: dbR.emirate || hc?.emirate || 'Dubai',
+            menu: dbR.menu || hc?.menu || [],
+          };
+        });
+        setDbRestaurants(merged);
       } catch (err) {
-        console.error('Failed to fetch restaurants:', err);
-        // Fallback to hardcoded data
+        console.error('Failed to fetch restaurants, using hardcoded data:', err.message);
         setDbRestaurants(hardcodedRestaurants);
       } finally {
         setIsLoading(false);
@@ -176,18 +190,16 @@ function DiscoverContent() {
       .then(async (loc) => {
         setUserLocation(loc);
         setLocationStatus('granted');
-        // Reverse geocode to get area name
         const name = await reverseGeocode(loc.lat, loc.lng);
         if (name) setLocationName(name);
       })
       .catch(() => {
         setLocationStatus('denied');
-        // Default to Dubai center
         setUserLocation({ lat: 25.2048, lng: 55.2708 });
       });
   }, []);
 
-  // Compute distances whenever restaurants or user location change
+  // Compute distances
   useEffect(() => {
     if (!userLocation || dbRestaurants.length === 0) return;
     const dists = {};
@@ -209,6 +221,14 @@ function DiscoverContent() {
     const emirate = searchParams.get('emirate');
     if (emirate) setSelectedEmirate(emirate);
   }, [searchParams]);
+
+  // Determine greeting based on time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   // Filter restaurants
   const filteredRestaurants = dbRestaurants.filter((restaurant) => {
@@ -242,21 +262,24 @@ function DiscoverContent() {
       return (distances[a.id] ?? 999) - (distances[b.id] ?? 999);
     }
     if (sortBy === 'newest') return (b.reviewCount || 0) - (a.reviewCount || 0);
-    // Default: distance if available, otherwise alphabetical
-    if (userLocation && distances[a.id] !== undefined) {
-      return (distances[a.id] ?? 999) - (distances[b.id] ?? 999);
-    }
-    return a.name.localeCompare(b.name);
+    
+    // Default 'recommended' sort: Heavily prioritize local & nearby places (<35km) over 90km cross-emirate restaurants
+    const distA = distances[a.id] ?? 999;
+    const distB = distances[b.id] ?? 999;
+    const penaltyA = distA > 35 ? 1000 : 0;
+    const penaltyB = distB > 35 ? 1000 : 0;
+
+    const scoreA = (a.rating || 4.0) * 20 - distA - penaltyA;
+    const scoreB = (b.rating || 4.0) * 20 - distB - penaltyB;
+
+    return scoreB - scoreA;
   });
 
-  // Determine if user is actively searching/filtering
   const isActivelyFiltering = searchTerm.length > 0 || selectedEmirate !== 'All Emirates' || selectedCuisine !== 'All' || sortBy !== 'recommended';
 
-  // Smart display: show only top 6 by default, all when actively filtering
   const MAX_DEFAULT = 6;
   const [showAllRestaurants, setShowAllRestaurants] = useState(false);
 
-  // Reset "show all" when filters change
   useEffect(() => {
     setShowAllRestaurants(false);
   }, [searchTerm, selectedEmirate, selectedCuisine, sortBy]);
@@ -281,19 +304,19 @@ function DiscoverContent() {
     }
   }, [isLoading, displayRestaurants.length, selectedEmirate, selectedCuisine, showAllRestaurants]);
 
-  // Handle restaurant selection (scroll card into view + highlight on map)
-  const handleSelectRestaurant = useCallback((restaurant) => {
-    setSelectedRestaurant(restaurant);
-    // Scroll the card into view on mobile
-    const cardEl = document.querySelector(`[data-restaurant-id="${restaurant.slug || restaurant.id}"]`);
-    if (cardEl) {
-      cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      cardEl.classList.add('rc-card-highlighted');
-      setTimeout(() => cardEl.classList.remove('rc-card-highlighted'), 2000);
-    }
-  }, []);
+  const router = useRouter();
 
-  // Extended sort options with 'nearest'
+  // Handle restaurant selection — navigates directly to restaurant detail page with optional dish highlight parameter
+  const handleSelectRestaurant = useCallback((restaurant, dishName = '') => {
+    if (!restaurant) return;
+    setSelectedRestaurant(restaurant);
+    const slug = restaurant.slug || restaurant.id;
+    const url = dishName 
+      ? `/restaurant/${slug}?dish=${encodeURIComponent(dishName)}`
+      : `/restaurant/${slug}`;
+    router.push(url);
+  }, [router]);
+
   const extendedSortOptions = [
     ...SORT_OPTIONS,
     ...(userLocation ? [{ value: 'nearest', label: 'Nearest First' }] : []),
@@ -301,118 +324,158 @@ function DiscoverContent() {
 
   return (
     <div className="discover-page">
-      <AppNavbar onSearchChange={setSearchTerm} searchValue={searchTerm} />
+      <AppNavbar onSearchChange={setSearchTerm} searchValue={searchTerm} hideSearch={true} />
       <CartDrawer />
 
-      {/* Location Status Bar */}
-      <div className="location-bar" id="location-bar">
-        <div className="location-bar-inner">
-          <div className="location-bar-left">
+      {/* ─── Hero Search Section ─── */}
+      <section className="discover-hero-section">
+        <div className="discover-hero-glow" />
+        <div className="discover-hero-content">
+          <h1 className="discover-hero-heading">
+            <span className="discover-hero-greeting">{getGreeting()},</span>
+            <span className="discover-hero-question">what are you craving?</span>
+          </h1>
+          <div ref={heroSearchRef} className="hero-search-wrapper">
+            <Search size={22} className="hero-search-icon" />
+            <input
+              type="text"
+              className="hero-search-input"
+              placeholder={placeholderText}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoComplete="off"
+            />
+            {searchTerm && (
+              <button className="hero-search-clear" onClick={() => setSearchTerm('')}>
+                <X size={18} />
+              </button>
+            )}
+            <div className="hero-search-shortcut">⌘K</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Consolidated Filter Bar ─── */}
+      <section className="discover-filter-bar">
+        <div className="discover-filter-bar-inner">
+          {/* Location pill */}
+          <div className="filter-location-pill">
             {locationStatus === 'loading' && (
               <>
-                <div className="location-bar-pulse" />
-                <span className="location-bar-text">Locating you...</span>
+                <span className="filter-loc-pulse" />
+                <span className="filter-loc-text">Locating...</span>
               </>
             )}
             {locationStatus === 'granted' && (
               <>
-                <span className="location-bar-icon">📍</span>
-                <span className="location-bar-text">
-                  Near <strong>{locationName || 'your location'}</strong>
+                <MapPin size={14} className="filter-loc-icon-svg" />
+                <span className="filter-loc-text">
+                  <strong>{locationName || 'Near you'}</strong>
                 </span>
               </>
             )}
             {locationStatus === 'denied' && (
               <>
-                <span className="location-bar-icon">🌍</span>
-                <span className="location-bar-text">
-                  Showing all UAE · <button className="location-bar-enable" onClick={() => {
-                    setLocationStatus('loading');
-                    getUserLocation().then(async (loc) => {
-                      setUserLocation(loc);
-                      setLocationStatus('granted');
-                      const name = await reverseGeocode(loc.lat, loc.lng);
-                      if (name) setLocationName(name);
-                    }).catch(() => setLocationStatus('denied'));
-                  }}>Enable location</button>
-                </span>
+                <Globe size={14} className="filter-loc-icon-svg" />
+                <span className="filter-loc-text">All UAE</span>
+                <button className="filter-loc-enable" onClick={() => {
+                  setLocationStatus('loading');
+                  getUserLocation().then(async (loc) => {
+                    setUserLocation(loc);
+                    setLocationStatus('granted');
+                    const name = await reverseGeocode(loc.lat, loc.lng);
+                    if (name) setLocationName(name);
+                  }).catch(() => setLocationStatus('denied'));
+                }}>Enable</button>
               </>
             )}
           </div>
-          <div className="location-bar-right">
-            <span className="location-bar-count">
-              {isActivelyFiltering || showAllRestaurants
-                ? `${sortedRestaurants.length} restaurant${sortedRestaurants.length !== 1 ? 's' : ''}`
-                : `Top ${displayRestaurants.length} of ${sortedRestaurants.length}`
-              }
+
+          {/* Emirate dropdown */}
+          <CustomDropdown
+            options={EMIRATES}
+            value={selectedEmirate}
+            onChange={setSelectedEmirate}
+            icon={MapPin}
+          />
+
+          {/* Cuisine dropdown */}
+          <CustomDropdown
+            options={['All', 'Ethiopian', 'Eritrean', 'Vegetarian', 'Vegan']}
+            value={selectedCuisine}
+            onChange={setSelectedCuisine}
+            icon={UtensilsCrossed}
+          />
+
+          {/* Sort + Count */}
+          <div className="filter-right-group">
+            <div className="filter-sort-wrap">
+              <SlidersHorizontal size={14} className="filter-sort-icon" />
+              <select
+                className="filter-sort-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                {extendedSortOptions.map((opt) => {
+                  let label = opt.label;
+                  if (opt.value === 'recommended') {
+                    label = language === 'am' ? 'የተመከሩ' : language === 'ti' ? 'ዝተመርጹ' : language === 'om' ? 'Kan Filatame' : opt.label;
+                  } else if (opt.value === 'rating') {
+                    label = language === 'am' ? 'ደረጃ (ከፍተኛ)' : language === 'ti' ? 'ደረጃ (ለዓሊ)' : language === 'om' ? 'Sadarkaa' : opt.label;
+                  }
+                  return <option key={opt.value} value={opt.value}>{label}</option>;
+                })}
+              </select>
+            </div>
+            <span className="filter-count-badge">
+              {sortedRestaurants.length} place{sortedRestaurants.length !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
-      </div>
-
-      {/* Filters */}
-      <section className="discover-controls" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
-        <div className="discover-controls-inner" style={{ padding: '0.4rem 2rem' }}>
-          <CustomDropdown
-            value={selectedEmirate}
-            onChange={setSelectedEmirate}
-            options={EMIRATES.map((e) => ({
-              value: e,
-              label: e === 'All Emirates' ? t('discover.allEmirates') : e
-            }))}
-            ariaLabel="Filter by Emirate"
-            showLocationPin={true}
-          />
-          <CustomDropdown
-            value={selectedCuisine}
-            onChange={setSelectedCuisine}
-            options={[
-              { value: 'All', label: t('discover.allCuisines') },
-              { value: 'Ethiopian', label: t('discover.cuisineEth') },
-              { value: 'Eritrean', label: t('discover.cuisineEri') },
-              { value: 'Vegetarian', label: t('discover.vegetarian') },
-              { value: 'Vegan', label: t('discover.vegan') }
-            ]}
-            ariaLabel="Filter by Cuisine"
-          />
-          <CustomDropdown
-            value={sortBy}
-            onChange={setSortBy}
-            options={extendedSortOptions.map((opt) => {
-              let label = opt.label;
-              if (opt.value === 'recommended') {
-                label = language === 'am' ? 'የተመከሩ' : language === 'ti' ? 'ዝተመርጹ' : language === 'om' ? 'Kan Filatame' : opt.label;
-              } else if (opt.value === 'rating') {
-                label = language === 'am' ? 'ደረጃ (ከፍተኛ)' : language === 'ti' ? 'ደረጃ (ለዓሊ)' : language === 'om' ? 'Sadarkaa' : opt.label;
-              }
-              return { value: opt.value, label };
-            })}
-            ariaLabel="Sort restaurants"
-          />
-        </div>
       </section>
 
-      {/* Smart Suggestions (AI Cards) */}
-      {!isLoading && (
-        <SmartSuggestions
-          restaurants={dbRestaurants}
-          userLocation={userLocation}
-          onSelectRestaurant={handleSelectRestaurant}
-          onSelectDish={() => {}}
-        />
-      )}
-
-      {/* Split View: Left Panel + Map */}
+      {/* ─── Split View: Left Panel + Map ─── */}
       <div className="discover-split-view">
-        {/* Left Panel — Price Compare + Restaurant Grid */}
+        {/* Left Panel */}
         <div className="discover-left-panel">
-          {/* Price Comparison */}
+          {/* Tabbed Section: Smart Picks / Price Compare */}
           {!isLoading && (
-            <PriceCompare
-              restaurants={dbRestaurants}
-              userLocation={userLocation}
-              onSelectRestaurant={handleSelectRestaurant}
-            />
+            <div className="discover-tabs-section">
+              <div className="discover-tabs-header">
+                <button
+                  className={`discover-tab ${activeTab === 'suggestions' ? 'discover-tab-active' : ''}`}
+                  onClick={() => setActiveTab('suggestions')}
+                >
+                  <Brain size={16} className="discover-tab-icon-svg" />
+                  <span>Smart Picks</span>
+                  <span className="discover-tab-badge">AI</span>
+                </button>
+                <button
+                  className={`discover-tab ${activeTab === 'price' ? 'discover-tab-active' : ''}`}
+                  onClick={() => setActiveTab('price')}
+                >
+                  <DollarSign size={16} className="discover-tab-icon-svg" />
+                  <span>Compare Prices</span>
+                </button>
+              </div>
+              <div className="discover-tabs-content">
+                <div className={`discover-tab-panel ${activeTab === 'suggestions' ? 'discover-tab-panel-visible' : ''}`}>
+                  <SmartSuggestions
+                    restaurants={dbRestaurants}
+                    userLocation={userLocation}
+                    onSelectRestaurant={handleSelectRestaurant}
+                    onSelectDish={() => {}}
+                  />
+                </div>
+                <div className={`discover-tab-panel ${activeTab === 'price' ? 'discover-tab-panel-visible' : ''}`}>
+                  <PriceCompare
+                    restaurants={dbRestaurants}
+                    userLocation={userLocation}
+                    onSelectRestaurant={handleSelectRestaurant}
+                  />
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Restaurant Grid */}
@@ -425,7 +488,9 @@ function DiscoverContent() {
               </div>
             ) : displayRestaurants.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">🍲</div>
+                <div className="empty-icon">
+                  <UtensilsCrossed size={48} />
+                </div>
                 <h2 className="empty-title">{t('discover.emptyTitle')}</h2>
                 <p className="empty-desc">{t('discover.emptyDesc')}</p>
                 <button
@@ -439,8 +504,13 @@ function DiscoverContent() {
               <>
                 {!isActivelyFiltering && !showAllRestaurants && (
                   <div className="discover-section-label">
-                    <span className="discover-section-label-icon">🏆</span>
+                    <Trophy size={18} className="discover-section-label-icon-svg" />
                     <span>Best picks near you</span>
+                    {userLocation && (
+                      <span className="discover-section-badge">
+                        <MapPin size={10} /> Based on your location
+                      </span>
+                    )}
                   </div>
                 )}
                 <div className="discover-grid" id="discover-grid">
@@ -458,13 +528,12 @@ function DiscoverContent() {
                     </div>
                   ))}
                 </div>
-                {/* Explore More button when showing default limited view */}
                 {hiddenCount > 0 && !isActivelyFiltering && !showAllRestaurants && (
                   <button
                     className="discover-explore-more"
                     onClick={() => setShowAllRestaurants(true)}
                   >
-                    <span className="discover-explore-more-icon">🔍</span>
+                    <Search size={16} className="discover-explore-more-icon-svg" />
                     <span>Explore {hiddenCount} more restaurant{hiddenCount !== 1 ? 's' : ''}</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6" /></svg>
                   </button>
@@ -474,7 +543,7 @@ function DiscoverContent() {
           </main>
         </div>
 
-        {/* Right Panel — Map (desktop) */}
+        {/* Right Panel — Map */}
         <div className={`discover-map-container ${showMap ? 'discover-map-mobile-show' : ''}`}>
           <DiscoverMap
             restaurants={displayRestaurants}
@@ -495,7 +564,7 @@ function DiscoverContent() {
       >
         {showMap ? (
           <>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
               <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
@@ -503,7 +572,7 @@ function DiscoverContent() {
           </>
         ) : (
           <>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
               <line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" />
             </svg>
@@ -519,7 +588,8 @@ function DiscoverContent() {
       {totalItems > 0 && (
         <div className="sticky-order-bar" id="sticky-order-bar">
           <div className="sticky-order-info">
-            <span>🛒 {totalItems} {totalItems === 1 ? t('discover.stickyItem') : t('discover.stickyItems')}</span>
+            <ShoppingCart size={16} />
+            <span>{totalItems} {totalItems === 1 ? t('discover.stickyItem') : t('discover.stickyItems')}</span>
             <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>|</span>
             <span style={{ color: 'var(--color-habesha-green)', fontWeight: 700 }}>AED {subtotal}</span>
             <span className="sticky-order-restaurant">{t('discover.stickyFrom')} {restaurantName}</span>

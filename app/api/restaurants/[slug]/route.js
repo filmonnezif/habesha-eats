@@ -12,75 +12,121 @@ export async function GET(request, { params }) {
   const { slug } = await params;
   
   try {
-    // Fetch restaurant
-    const [restaurant] = await sql`
-      SELECT 
-        r.*, rt.name as type_name, rt.code as type_code
-      FROM restaurants r
-      JOIN restaurant_types rt ON r.restaurant_type_id = rt.id
-      WHERE r.slug = ${slug} AND r.deleted_at IS NULL
-      LIMIT 1
+    // Single query fetches EVERYTHING using CTEs + json_agg.
+    // This eliminates 7 extra HTTP roundtrips to Neon (~300-430ms each).
+    const [row] = await sql`
+      WITH r AS (
+        SELECT r.*, rt.name AS type_name, rt.code AS type_code
+        FROM restaurants r
+        JOIN restaurant_types rt ON r.restaurant_type_id = rt.id
+        WHERE r.slug = ${slug} AND r.deleted_at IS NULL
+        LIMIT 1
+      ),
+      b AS (
+        SELECT json_agg(
+          json_build_object(
+            'id', b.id, 'name', b.name, 'slug', b.slug,
+            'area', b.area, 'address', b.address,
+            'phone', b.phone, 'whatsapp_number', b.whatsapp_number,
+            'whatsapp_url', b.whatsapp_url, 'google_maps_url', b.google_maps_url,
+            'email', b.email, 'description', b.description,
+            'latitude', b.latitude, 'longitude', b.longitude,
+            'emirate_name', e.name, 'emirate_code', e.code,
+            'accepts_dine_in', b.accepts_dine_in, 'accepts_delivery', b.accepts_delivery,
+            'status', b.status, 'is_featured', b.is_featured
+          ) ORDER BY b.is_featured DESC, b.name
+        ) AS data
+        FROM branches b
+        JOIN emirates e ON b.emirate_id = e.id
+        WHERE b.restaurant_id = (SELECT id FROM r) AND b.deleted_at IS NULL
+      ),
+      bh AS (
+        SELECT json_agg(
+          json_build_object(
+            'branch_id', bh.branch_id, 'day_of_week', bh.day_of_week,
+            'open_time', bh.open_time, 'close_time', bh.close_time, 'is_closed', bh.is_closed
+          ) ORDER BY bh.day_of_week
+        ) AS data
+        FROM branch_hours bh
+        JOIN branches br ON bh.branch_id = br.id
+        WHERE br.restaurant_id = (SELECT id FROM r)
+      ),
+      c AS (
+        SELECT json_agg(json_build_object('name', cu.name, 'code', cu.code)) AS data
+        FROM restaurant_cuisines rc
+        JOIN cuisines cu ON rc.cuisine_id = cu.id
+        WHERE rc.restaurant_id = (SELECT id FROM r)
+      ),
+      sl AS (
+        SELECT json_agg(
+          json_build_object('platform', sp.name, 'platform_code', sp.code, 'url', rsl.url)
+        ) AS data
+        FROM restaurant_social_links rsl
+        JOIN social_platforms sp ON rsl.social_platform_id = sp.id
+        WHERE rsl.restaurant_id = (SELECT id FROM r)
+      ),
+      mc AS (
+        SELECT json_agg(
+          json_build_object('id', cat.id, 'name', cat.name, 'display_order', cat.display_order)
+          ORDER BY cat.display_order, cat.name
+        ) AS data
+        FROM menu_categories cat
+        WHERE cat.restaurant_id = (SELECT id FROM r) AND cat.is_active = true
+      ),
+      mi AS (
+        SELECT json_agg(
+          json_build_object(
+            'id', item.id, 'category_id', item.category_id, 'name', item.name,
+            'description', item.description, 'price', item.price,
+            'image_url', item.image_url, 'tags', item.tags,
+            'is_available', item.is_available, 'display_order', item.display_order
+          ) ORDER BY item.display_order, item.name
+        ) AS data
+        FROM menu_items item
+        JOIN menu_categories mcat ON item.category_id = mcat.id
+        WHERE mcat.restaurant_id = (SELECT id FROM r)
+      ),
+      dp AS (
+        SELECT json_agg(
+          json_build_object(
+            'branch_id', bdp.branch_id, 'name', dpart.name,
+            'code', dpart.code, 'website_url', dpart.website_url, 'partner_url', bdp.partner_url
+          )
+        ) AS data
+        FROM branch_delivery_partners bdp
+        JOIN delivery_partners dpart ON bdp.delivery_partner_id = dpart.id
+        JOIN branches br ON bdp.branch_id = br.id
+        WHERE br.restaurant_id = (SELECT id FROM r)
+      )
+      SELECT
+        r.*,
+        COALESCE(b.data, '[]'::json) AS branches_json,
+        COALESCE(bh.data, '[]'::json) AS branch_hours_json,
+        COALESCE(c.data, '[]'::json) AS cuisines_json,
+        COALESCE(sl.data, '[]'::json) AS social_links_json,
+        COALESCE(mc.data, '[]'::json) AS menu_categories_json,
+        COALESCE(mi.data, '[]'::json) AS menu_items_json,
+        COALESCE(dp.data, '[]'::json) AS delivery_partners_json
+      FROM r, b, bh, c, sl, mc, mi, dp
     `;
 
-    if (!restaurant) {
+    if (!row) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 });
     }
 
-    // Fetch branches with emirate
-    const branches = await sql`
-      SELECT 
-        b.*, e.name as emirate_name, e.code as emirate_code
-      FROM branches b
-      JOIN emirates e ON b.emirate_id = e.id
-      WHERE b.restaurant_id = ${restaurant.id} AND b.deleted_at IS NULL
-      ORDER BY b.is_featured DESC, b.name
-    `;
-
-    // Fetch branch hours
-    const branchHours = await sql`
-      SELECT bh.* FROM branch_hours bh
-      JOIN branches b ON bh.branch_id = b.id
-      WHERE b.restaurant_id = ${restaurant.id}
-      ORDER BY bh.day_of_week
-    `;
-
-    // Fetch cuisines
-    const cuisines = await sql`
-      SELECT c.name, c.code FROM restaurant_cuisines rc
-      JOIN cuisines c ON rc.cuisine_id = c.id
-      WHERE rc.restaurant_id = ${restaurant.id}
-    `;
-
-    // Fetch social links
-    const socialLinks = await sql`
-      SELECT sp.name as platform, sp.code as platform_code, rsl.url
-      FROM restaurant_social_links rsl
-      JOIN social_platforms sp ON rsl.social_platform_id = sp.id
-      WHERE rsl.restaurant_id = ${restaurant.id}
-    `;
-
-    // Fetch menu categories + items
-    const menuCategories = await sql`
-      SELECT * FROM menu_categories
-      WHERE restaurant_id = ${restaurant.id} AND is_active = true
-      ORDER BY display_order, name
-    `;
-
-    const menuItems = await sql`
-      SELECT mi.* FROM menu_items mi
-      JOIN menu_categories mc ON mi.category_id = mc.id
-      WHERE mc.restaurant_id = ${restaurant.id}
-      ORDER BY mi.display_order, mi.name
-    `;
-
-    // Fetch delivery partners for branches
-    const deliveryPartners = await sql`
-      SELECT bdp.branch_id, dp.name, dp.code, dp.website_url, bdp.partner_url
-      FROM branch_delivery_partners bdp
-      JOIN delivery_partners dp ON bdp.delivery_partner_id = dp.id
-      JOIN branches b ON bdp.branch_id = b.id
-      WHERE b.restaurant_id = ${restaurant.id}
-    `;
+    // Parse JSON arrays — Neon returns already-parsed objects, with fallbacks for safety
+    const parseJson = (val) => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') try { return JSON.parse(val); } catch { return []; }
+      return [];
+    };
+    const branches = parseJson(row.branches_json);
+    const branchHours = parseJson(row.branch_hours_json);
+    const cuisines = parseJson(row.cuisines_json);
+    const socialLinks = parseJson(row.social_links_json);
+    const menuCategories = parseJson(row.menu_categories_json);
+    const menuItems = parseJson(row.menu_items_json);
+    const deliveryPartners = parseJson(row.delivery_partners_json);
 
     // Assemble menu
     const menu = menuCategories.map(cat => ({
@@ -105,23 +151,23 @@ export async function GET(request, { params }) {
     const primaryBranch = branches.find(b => b.is_featured) || branches[0] || null;
 
     const result = {
-      id: restaurant.id,
-      name: restaurant.name,
-      slug: restaurant.slug,
-      description: restaurant.description || '',
-      tagline: restaurant.tagline || '',
-      logoUrl: restaurant.logo_url,
-      websiteUrl: restaurant.website_url,
-      email: restaurant.email,
-      status: restaurant.status,
-      heroImage: restaurant.hero_image_url || '/images/dish_injera.webp',
-      rating: parseFloat(restaurant.rating) || 4.5,
-      reviewCount: restaurant.review_count || 0,
-      priceRange: restaurant.price_range || '$$',
-      adminUsername: restaurant.admin_username,
-      adminPassword: restaurant.admin_password,
-      type: { name: restaurant.type_name, code: restaurant.type_code },
-      cuisines: cuisines.map(c => c.code), // Return cuisine codes for easier matching in edit form
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      description: row.description || '',
+      tagline: row.tagline || '',
+      logoUrl: row.logo_url,
+      websiteUrl: row.website_url,
+      email: row.email,
+      status: row.status,
+      heroImage: row.hero_image_url || '/images/dish_injera.webp',
+      rating: parseFloat(row.rating) || 4.5,
+      reviewCount: row.review_count || 0,
+      priceRange: row.price_range || '$$',
+      adminUsername: row.admin_username,
+      adminPassword: row.admin_password,
+      type: { name: row.type_name, code: row.type_code },
+      cuisines: cuisines.map(c => c.code),
       socialLinks: socialLinks.map(s => ({
         platform: s.platform,
         code: s.platform_code,
@@ -171,7 +217,11 @@ export async function GET(request, { params }) {
       googleMapsUrl: primaryBranch?.google_maps_url || '',
     };
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Error fetching restaurant:', error);
     return NextResponse.json({ error: 'Failed to fetch restaurant' }, { status: 500 });

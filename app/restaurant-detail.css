@@ -819,3 +819,28 @@
     height: 200px;
   }
 }
+
+/* Glowing Dish Highlight Animation */
+@keyframes rdPulseHighlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(252, 217, 0, 0.8), 0 0 25px rgba(52, 199, 89, 0.5);
+    border-color: var(--color-habesha-gold, #fcd900);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(252, 217, 0, 0), 0 0 35px rgba(52, 199, 89, 0.7);
+    border-color: var(--color-habesha-green, #34c759);
+    transform: scale(1.025);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(252, 217, 0, 0), 0 0 10px rgba(52, 199, 89, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1);
+  }
+}
+
+.rd-item-highlighted {
+  animation: rdPulseHighlight 2.5s ease-in-out infinite;
+  border: 2px solid var(--color-habesha-gold, #fcd900) !important;
+  border-radius: 14px;
+}

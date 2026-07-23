@@ -19,18 +19,19 @@ export async function GET(request, { params }) {
   if (!restaurantId) return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 });
 
   try {
-    const categories = await sql`
-      SELECT * FROM menu_categories
-      WHERE restaurant_id = ${restaurantId} AND is_active = true
-      ORDER BY display_order, name
-    `;
-
-    const items = await sql`
-      SELECT mi.* FROM menu_items mi
-      JOIN menu_categories mc ON mi.category_id = mc.id
-      WHERE mc.restaurant_id = ${restaurantId}
-      ORDER BY mi.display_order, mi.name
-    `;
+    const [categories, items] = await Promise.all([
+      sql`
+        SELECT * FROM menu_categories
+        WHERE restaurant_id = ${restaurantId} AND is_active = true
+        ORDER BY display_order, name
+      `,
+      sql`
+        SELECT mi.* FROM menu_items mi
+        JOIN menu_categories mc ON mi.category_id = mc.id
+        WHERE mc.restaurant_id = ${restaurantId}
+        ORDER BY mi.display_order, mi.name
+      `,
+    ]);
 
     const menu = categories.map(cat => ({
       id: cat.id,
@@ -51,7 +52,11 @@ export async function GET(request, { params }) {
         })),
     }));
 
-    return NextResponse.json(menu);
+    return NextResponse.json(menu, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Error fetching menu:', error);
     return NextResponse.json({ error: 'Failed to fetch menu', details: error.message }, { status: 500 });

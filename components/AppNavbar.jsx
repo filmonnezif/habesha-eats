@@ -14,7 +14,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
  * AppNavbar — Always-visible navbar for app pages (Discover, Restaurant, etc.)
  * Features: Logo, Search bar with autocomplete suggestions, Cart icon with badge, Profile avatar.
  */
-export default function AppNavbar({ onSearchChange, searchValue = '' }) {
+export default function AppNavbar({ onSearchChange, searchValue = '', hideSearch = false }) {
   const { totalItems, setIsCartOpen } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const badgeRef = useRef(null);
@@ -149,65 +149,67 @@ export default function AppNavbar({ onSearchChange, searchValue = '' }) {
           </Link>
 
           {/* Search Bar with Autocomplete dropdown wrapper */}
-          <div ref={searchWrapperRef} className="app-search-bar-wrapper">
-            <svg className="app-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            <input
-              type="text"
-              className="app-search-input"
-              placeholder={isMobile ? 'Search' : t('navbar.findNearYou')}
-              value={searchValue}
-              onChange={(e) => {
-                onSearchChange?.(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              id="app-search-input"
-              autoComplete="off"
-            />
-            {searchValue && (
-              <button
-                className="app-search-clear"
-                onClick={() => {
-                  onSearchChange?.('');
-                  setSuggestions([]);
+          {!hideSearch && (
+            <div ref={searchWrapperRef} className="app-search-bar-wrapper">
+              <svg className="app-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                className="app-search-input"
+                placeholder={isMobile ? 'Search' : t('navbar.findNearYou')}
+                value={searchValue}
+                onChange={(e) => {
+                  onSearchChange?.(e.target.value);
+                  setShowSuggestions(true);
                 }}
-                aria-label="Clear search"
-              >
-                ×
-              </button>
-            )}
+                onFocus={() => setShowSuggestions(true)}
+                id="app-search-input"
+                autoComplete="off"
+              />
+              {searchValue && (
+                <button
+                  className="app-search-clear"
+                  onClick={() => {
+                    onSearchChange?.('');
+                    setSuggestions([]);
+                  }}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
 
-            {/* Autocomplete Suggestions Dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="app-search-suggestions">
-                {suggestions.map((sug, idx) => (
-                  <div
-                    key={`${sug.type}-${sug.id || idx}`}
-                    className="app-search-suggestion-item"
-                    onClick={() => handleSuggestionClick(sug)}
-                  >
-                    {sug.image ? (
-                      <img src={sug.image} alt={sug.name} className="app-search-suggestion-img" />
-                    ) : (
-                      <div className="app-search-suggestion-icon">
-                        {sug.type === 'restaurant' ? '🏪' : '🍛'}
+              {/* Autocomplete Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="app-search-suggestions">
+                  {suggestions.map((sug, idx) => (
+                    <div
+                      key={`${sug.type}-${sug.id || idx}`}
+                      className="app-search-suggestion-item"
+                      onClick={() => handleSuggestionClick(sug)}
+                    >
+                      {sug.image ? (
+                        <img src={sug.image} alt={sug.name} className="app-search-suggestion-img" />
+                      ) : (
+                        <div className="app-search-suggestion-icon">
+                          {sug.type === 'restaurant' ? '🏪' : '🍛'}
+                        </div>
+                      )}
+                      <div className="app-search-suggestion-text">
+                        <span className="app-search-suggestion-title">{sug.name}</span>
+                        <span className="app-search-suggestion-subtitle">{sug.subtitle}</span>
                       </div>
-                    )}
-                    <div className="app-search-suggestion-text">
-                      <span className="app-search-suggestion-title">{sug.name}</span>
-                      <span className="app-search-suggestion-subtitle">{sug.subtitle}</span>
+                      <span className="app-search-suggestion-badge">
+                        {sug.type}
+                      </span>
                     </div>
-                    <span className="app-search-suggestion-badge">
-                      {sug.type}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Right actions */}
           <div className="app-navbar-actions">
